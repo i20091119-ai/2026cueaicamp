@@ -50,6 +50,8 @@
   .bar .in { max-width:960px; margin:0 auto; display:flex; gap:12px; align-items:center; }
   .bar .in div { flex:1; font-size:14px; }
   .preview { width:100%; max-height:240px; object-fit:contain; border-radius:10px; margin-top:10px; background:#e3ece8; }
+  .logo { mix-blend-mode:multiply; display:block; height:40px; max-width:100%; margin:4px 0 14px; }
+  .logo.sm { height:26px; margin:0 0 6px; }
   .hide { display:none !important; }
   .top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .cheer { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px; overflow-wrap:anywhere; }
@@ -87,6 +89,7 @@
 <div id="v-load" class="wrap narrow"><div class="sub" id="load-msg" style="margin-top:40px;text-align:center">불러오는 중…</div></div>
 
 <div id="v-login" class="wrap narrow hide">
+  <img class="logo" src="logo.png" alt="진주교육대학교">
   <h1>가족 앱 부스 투표</h1>
   <div class="sub">2026 코딩앤메이커 with AI캠프 · 캔바 바이브코딩</div>
   <div class="card" style="margin-top:16px">
@@ -102,6 +105,7 @@
 </div>
 
 <div id="v-adminlogin" class="wrap narrow hide">
+  <img class="logo" src="logo.png" alt="진주교육대학교">
   <h1>관리자</h1>
   <div class="card" style="margin-top:16px">
     <label for="in-pw">관리자 비밀번호</label>
@@ -113,6 +117,7 @@
 </div>
 
 <div id="v-profile" class="wrap narrow hide">
+  <img class="logo" src="logo.png" alt="진주교육대학교">
   <h1>우리 가족 설정</h1>
   <div class="sub" id="pf-hello"></div>
   <div class="card" style="margin-top:16px">
@@ -131,7 +136,7 @@
 
 <div id="v-main" class="wrap hide">
   <div class="top">
-    <div><h1>가족 앱 부스 투표</h1></div>
+    <div><img class="logo sm" src="logo.png" alt="진주교육대학교"><h1>가족 앱 부스 투표</h1></div>
     <button class="link" id="btn-logout">나가기</button>
   </div>
   <div class="card me" style="margin-top:10px">
@@ -154,7 +159,7 @@
 
 <div id="v-admin" class="wrap hide">
   <div class="top">
-    <div><h1>관리자 대시보드</h1><div class="sub">실시간으로 바뀝니다</div></div>
+    <div><img class="logo sm" src="logo.png" alt="진주교육대학교"><h1>관리자 대시보드</h1><div class="sub">실시간으로 바뀝니다</div></div>
     <button class="link" id="btn-admin-out">나가기</button>
   </div>
   <div class="stats" id="ad-stats"></div>
