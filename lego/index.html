@@ -31,7 +31,8 @@
   .card { background:#fff; border-radius:22px; padding:18px 20px; box-shadow:0 8px 24px rgba(14,34,64,.08); margin-top:14px; }
   .login { max-width:400px; margin:60px auto; padding:0 16px; text-align:center; }
   .login h1 { font-size:40px; }
-  .teams { display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; }
+  .teams { display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; }
+  .teams button .nm { display:block; font-family:"Gowun Dodum","Noto Sans KR",sans-serif; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
   .teams button { background:#fff; color:var(--navy); border:2px solid var(--line); padding:10px 0; font-size:18px; position:relative; }
   .teams button.on { background:var(--navy); color:var(--cream); border-color:var(--navy); }
   .teams button.done { border-color:var(--aqua); background:#DDF2F1; }
@@ -140,7 +141,8 @@ const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const COL = 'config';        // 현재 규칙이 허용하는 컬렉션. 문서 id 앞에 lego_ 를 붙여 구분한다
 const PRE = 'lego_', BOOK = 'book_';
 const ADMIN_PW = '3141';
-const TEAMS = 25;
+const TEAMS = 25;           // 명단이 없을 때의 팀 수. 명단을 등록하면 명단의 팀만 보인다
+function teamList() { const l = roster && roster.teams && roster.teams.length ? Array.from(new Set(roster.teams.map(t => t.team))).sort((a, b) => a - b) : null; if (l) return l; const d = []; for (let t = 1; t <= TEAMS; t++) d.push(t); return d; }
 
 /* ====== 심사 기준 ====== */
 const MISSIONS = [
@@ -202,7 +204,7 @@ function pAvg(t) { const v = ['A', 'B'].map(j => pOf(t, j)).filter(x => x != nul
 function q1Avg(t) { const v = ['A', 'B'].filter(j => pOf(t, j) != null).map(j => rec(t).p[j].q1); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
 const fmt = n => n == null ? '–' : (Math.round(n * 10) / 10).toString();
 function ranking() {
-  const list = []; for (let t = 1; t <= TEAMS; t++) { const p = pAvg(t); list.push({ t, m: mSum(t), p, tot: mSum(t) + (p || 0), q1: q1Avg(t) }); }
+  const list = []; teamList().forEach(t => { const p = pAvg(t); list.push({ t, m: mSum(t), p, tot: mSum(t) + (p || 0), q1: q1Avg(t) }); });
   list.sort((a, b) => b.tot - a.tot || b.m - a.m || b.q1 - a.q1 || a.t - b.t);
   list.forEach((r, i) => { const prev = list[i - 1]; r.rank = prev && prev.tot === r.tot && prev.m === r.m && prev.q1 === r.q1 ? prev.rank : i + 1; });
   return list;
@@ -211,14 +213,17 @@ function ranking() {
 /* ---------- 화면 ---------- */
 function teamPicker(doneFn, subFn) {
   const box = el('div', 'teams');
-  for (let t = 1; t <= TEAMS; t++) {
-    const b = el('button', (t === team ? 'on' : '') + (doneFn(t) ? ' done' : ''), String(t)); b.appendChild(el('small', null, subFn(t)));
+  const tl = teamList(); if (!tl.includes(team)) team = tl[0];
+  tl.forEach(t => {
+    const b = el('button', (t === team ? 'on' : '') + (doneFn(t) ? ' done' : ''), String(t));
+    if (names[t]) b.appendChild(el('span', 'nm', names[t]));
+    b.appendChild(el('small', null, subFn(t)));
     b.setAttribute('aria-label', t + '팀'); b.onclick = () => { team = t; flash = ''; render(); }; box.appendChild(b);
-  }
+  });
   return box;
 }
 function teamHead(sumLabel, sumVal, max) {
-  const h = el('div', 'th'); h.appendChild(el('h2', null, team + '팀')); if (names[team]) h.appendChild(el('span', 'hint', names[team]));
+  const h = el('div', 'th'); h.appendChild(el('h2', null, team + '팀' + (names[team] ? ' · ' + names[team] : '')));
   if (flash) h.appendChild(el('span', 'saved', flash));
   const s = el('div', 'sum', sumLabel + ' '); s.appendChild(el('b', null, sumVal)); s.appendChild(document.createTextNode(' / ' + max)); h.appendChild(s); return h;
 }
@@ -280,8 +285,8 @@ function csv() {
 function viewResult(body) {
   const c = el('div', 'card'), list = ranking();
   const bar = el('div', 'bar');
-  let mt = 0, pt = 0; for (let t = 1; t <= TEAMS; t++) { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; }
-  bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + TEAMS + '팀 · 교수 심사 ' + pt + ' / ' + TEAMS + '팀'));
+  let mt = 0, pt = 0; const tn = teamList().length; teamList().forEach(t => { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; });
+  bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + tn + '팀 · 교수 심사 ' + pt + ' / ' + tn + '팀'));
   bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
   c.appendChild(el('div', 'hint', '총점 = 미션 합(24) + 교수 심사(12). 교수 심사는 팀별 담당 심사위원 1명의 점수(채점지에서 옮겨 입력). 동점은 미션 합 → ① 문제 이해 순.'));
   const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
@@ -301,7 +306,7 @@ function parseRoster(text) {
   text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(l => {
     const m = l.match(/^(\d{1,2})\s*(?:팀|번)?[\s,\t]+(.*?)[\s,\t]*([\d\-\s]{4,})$/);
     const digits = m ? m[3].replace(/\D/g, '') : '';
-    if (!m || digits.length < 4 || +m[1] < 1 || +m[1] > TEAMS) { bad.push(l); return; }
+    if (!m || digits.length < 4 || +m[1] < 1 || +m[1] > 60) { bad.push(l); return; }
     out.push({ team: +m[1], name: m[2].replace(/[,\t]/g, ' ').trim().slice(0, 12), key: digits.slice(-4) });
   });
   return { out, bad };
@@ -316,7 +321,7 @@ async function registerRoster(list) {
 function viewRoster(body) {
   const c = el('div', 'card'); c.appendChild(el('h2', null, '참가 명단')); c.lastChild.style.fontSize = '28px';
   const n = roster && roster.teams ? roster.teams.length : 0;
-  c.appendChild(el('div', 'hint', '학생은 보호자 전화번호 뒤 네 자리로 들어옵니다. 지금 등록된 팀: ' + n + '팀. 새로 등록하면 이전 명단은 지워집니다. 전화번호는 뒤 네 자리만 저장합니다.'));
+  c.appendChild(el('div', 'hint', '학생은 보호자 전화번호 뒤 네 자리로 들어옵니다. 명단을 등록하면 미션 판정 · 교수 심사 · 결과에 명단의 팀만 이름과 함께 나옵니다. 지금 등록된 팀: ' + n + '팀. 새로 등록하면 이전 명단은 지워집니다. 전화번호는 뒤 네 자리만 저장합니다.'));
   const ta = el('textarea'); ta.rows = 10; ta.placeholder = '한 줄에 한 팀: 팀 번호, 가족 이름, 전화번호\n1 홍길동 가족 010-1234-5678\n2 김철수 가족 010-2222-3333';
   ta.style.cssText = 'width:100%;font:inherit;font-size:16px;padding:12px;border:2px solid var(--line);border-radius:14px;margin-top:10px'; ta.setAttribute('aria-label', '명단 붙여넣기'); c.appendChild(ta);
   const bar = el('div', 'bar'); bar.style.marginTop = '10px';
