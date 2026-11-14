@@ -372,7 +372,6 @@ function whalePad(d, id) {
 }
 function entryForm(a, n) {
   const id = docId(a.id, n), d = valOf(a.id, n), box = el('div', 'entry');
-  if (a.multi) box.appendChild(chipField(d, id, 'who', '쓴 사람', ['학생', '어른']));
   if (a.id === 'feel') {
     box.appendChild(textField(d, id, 'word', '지금 내 마음 한 단어', 8, false, '예: 놀라움'));
     const c = el('div', 'chips'); c.style.marginTop = '8px';
