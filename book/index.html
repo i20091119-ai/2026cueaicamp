@@ -6,7 +6,7 @@
 <title>고래 낙하 활동지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root { --navy:#0E2240; --deep:#081830; --cream:#F7F3EA; --aqua:#6CCBCB; --coral:#F08A6C; --brick:#B44A33; --sun:#F6D57A; --soft:#4A5A6E; --mist:#C9DEDD; --line:#E3DCCB; }
   * { box-sizing:border-box; }
@@ -114,6 +114,69 @@
   .w-admin input { width:110px; font-size:14px; padding:6px 8px; border-radius:8px; }
   @keyframes pop { from { opacity:0; transform:translateY(14px) scale(.96); } to { opacity:1; transform:none; } }
   @media (max-width:900px) { .w-cols, .w-bars { grid-template-columns:1fr 1fr; } .w-head h1 { font-size:36px; } }
+
+  /* ---------- 귀여운 테마 ---------- */
+  body { font-family:"Gowun Dodum","Noto Sans KR","Malgun Gothic",sans-serif; background:linear-gradient(180deg,#DFF5F4 0%,#FFF7E6 100%) fixed; font-weight:400; }
+  button, label, .lab, .tabs button, .chips button, .seg button { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; letter-spacing:.2px; }
+  button { border-radius:999px; background:#2F6FB5; color:#fff; box-shadow:0 5px 0 #1F4E86; transition:transform .08s, box-shadow .08s; font-size:18px; }
+  button:active { transform:translateY(4px); box-shadow:0 1px 0 #1F4E86; }
+  button.ghost { background:#fff; color:#2F6FB5; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; }
+  button.small { border-radius:999px; }
+  input[type=text], input[type=number], input[type=password], textarea { border:3px solid #BFE3F2; border-radius:20px; }
+  .card { border-radius:32px; border:4px solid #fff; box-shadow:0 10px 0 rgba(108,203,203,.28), 0 18px 30px rgba(14,34,64,.06); }
+  .hint { font-size:15px; }
+  .mascot { display:block; animation:bob 2.6s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform:translateY(-5px) rotate(-2deg); } to { transform:translateY(5px) rotate(2deg); } }
+  .top { background:linear-gradient(180deg,#7FD6D6,#4FA9D8); padding:14px 16px 50px; }
+  .top h1 { font-size:30px; text-shadow:0 3px 0 rgba(14,34,64,.18); }
+  .top .who { color:#fff; font-family:"Jua",sans-serif; font-size:17px; }
+  .top button { color:#fff; box-shadow:none; font-size:13px; }
+  .top .mascot { width:92px; flex:none; }
+  .top svg.wave path { fill:#DFF5F4; }
+  .tabs button { border:3px solid #fff; background:#fff; color:#0E2240; box-shadow:0 4px 0 rgba(108,203,203,.35); font-size:17px; padding:9px 18px; }
+  .tabs button.on { background:#FFD966; border-color:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .tabs button .dot { background:#F08A6C; }
+  .chips button { background:#fff; color:#0E2240; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; font-size:18px; padding:9px 18px; }
+  .chips button.on { background:#6CCBCB; border-color:#6CCBCB; box-shadow:0 4px 0 #46A3A6; }
+  .chips.c2 button.on { background:#FFA98F; border-color:#FFA98F; box-shadow:0 4px 0 #D9775C; }
+  .chips button:disabled { opacity:.35; box-shadow:none; }
+  .acth .no { background:#F08A6C; font-family:"Jua",sans-serif; font-size:15px; padding:5px 14px; }
+  .acth h2 { font-size:34px; }
+  .seq { border:3px dashed #9ED9DA; background:#F1FBFB; border-radius:22px; }
+  .seq .pill { background:#2F6FB5; font-family:"Jua",sans-serif; }
+  .seq .arr { color:#F08A6C; }
+  .entry { border-top:3px dotted #BFE3F2; }
+  .save button { background:#F08A6C; box-shadow:0 5px 0 #C9644A; font-size:20px; padding:14px 26px; }
+  .save button:active { box-shadow:0 1px 0 #C9644A; }
+  .pad { border-radius:26px; border:4px solid #fff; box-shadow:0 6px 0 rgba(108,203,203,.3); }
+  .pal button.col { box-shadow:0 0 0 3px #BFE3F2; }
+  .pal button.col.on { box-shadow:0 0 0 4px #0E2240; transform:scale(1.12); }
+  .login { padding-top:10px; }
+  .login .mascot { width:230px; margin:0 auto -6px; }
+  .login img { height:34px; margin:10px auto 0; }
+  .login h1 { font-size:56px; color:#0E2240; text-shadow:0 4px 0 #BFEDEE; }
+  .login p.hint { font-family:"Jua",sans-serif; font-size:20px; color:#2F6FB5; }
+  .login input { text-align:center; font-family:"Jua",sans-serif; font-size:34px; letter-spacing:10px; }
+  .login #btn-login { font-size:22px; padding:14px; background:#F08A6C; box-shadow:0 6px 0 #C9644A; }
+  /* 담벼락 */
+  body.wall { background:linear-gradient(180deg,#123A6B 0%,#0E2240 55%,#081830 100%) fixed; }
+  body.wall::before { content:""; position:fixed; inset:0; pointer-events:none; background-image:radial-gradient(circle at 8% 78%,rgba(191,237,238,.20) 0 14px,transparent 15px),radial-gradient(circle at 14% 62%,rgba(191,237,238,.16) 0 8px,transparent 9px),radial-gradient(circle at 91% 70%,rgba(191,237,238,.18) 0 18px,transparent 19px),radial-gradient(circle at 86% 52%,rgba(191,237,238,.14) 0 9px,transparent 10px),radial-gradient(circle at 50% 92%,rgba(191,237,238,.12) 0 11px,transparent 12px); }
+  .w-head h1 { text-shadow:0 4px 0 rgba(0,0,0,.25); }
+  .w-head .mascot { width:120px; flex:none; margin:-10px 0; }
+  .w-head .no { font-family:"Jua",sans-serif; font-size:22px; background:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .w-tabs button { background:#1B4478; color:#D7ECF5; box-shadow:0 4px 0 #0B274B; font-size:19px; }
+  .w-tabs button.on { background:#6CCBCB; color:#0E2240; box-shadow:0 4px 0 #46A3A6; }
+  .w-card { border-radius:34px 34px 34px 10px; border:4px solid #fff; box-shadow:0 8px 0 rgba(0,0,0,.22); background:#FFFDF6; }
+  .w-card.c1 { background:#E3F7F6; } .w-card.c2 { background:#FFF1C9; } .w-card.c3 { background:#FFE3DA; }
+  .w-card .t { font-family:"Jua",sans-serif; font-weight:400; font-size:27px; }
+  .w-card .by .tm { background:#2F6FB5; font-family:"Jua",sans-serif; }
+  .w-card .tag { background:#F08A6C; font-family:"Jua",sans-serif; font-size:17px; }
+  .w-card .hb { box-shadow:none; background:#0E2240; font-size:13px; }
+  .w-cloud span { background:#1B4478; border:4px solid #FFD966; color:#FFD966; box-shadow:0 6px 0 rgba(0,0,0,.25); }
+  .w-bar { background:#1B4478; border:4px solid #2C5C99; border-radius:30px; }
+  .w-bar .n { color:#FFD966; } .w-bar .m { height:16px; } .w-bar .m i { background:linear-gradient(90deg,#6CCBCB,#BFEDEE); }
+  .w-cols h2 { color:#FFD966; }
+  .w-admin button { box-shadow:none; }
 </style>
 </head>
 <body>
@@ -122,7 +185,7 @@
 
 <!-- 팀 입장 -->
 <div id="v-login" class="login hide">
-  <img src="cue_logo.png" alt="진주교육대학교">
+  <svg class="mascot" viewBox="0 -70 600 340" aria-hidden="true"><g fill="#BFEDEE"><circle cx="150" cy="-20" r="13"/><circle cx="186" cy="-48" r="9"/><circle cx="118" cy="-50" r="7"/></g><path d="M150 52 C150 30 140 14 150 0 C160 14 152 30 152 52 Z" fill="#BFEDEE"/><path d="M50 168 C48 96 150 52 280 58 C380 62 450 104 486 146 C500 160 516 160 528 146 L548 104 C556 86 584 92 582 114 C580 138 568 156 552 170 C572 186 588 208 584 232 C580 250 558 250 550 236 L524 196 C486 232 400 252 296 252 C164 252 52 236 50 168 Z" fill="#6CCBCB" stroke="#0E2240" stroke-width="6" stroke-linejoin="round"/><path d="M70 205 C150 244 300 250 420 226 C340 262 150 262 70 205 Z" fill="#FFFFFF" opacity=".75"/><circle cx="118" cy="150" r="9" fill="#0E2240"/><circle cx="121" cy="147" r="3" fill="#FFFFFF"/><ellipse cx="150" cy="184" rx="20" ry="11" fill="#F4A6C0" opacity=".85"/><path d="M68 196 C96 212 130 212 152 202" fill="none" stroke="#0E2240" stroke-width="5" stroke-linecap="round"/><path d="M250 208 C262 236 292 252 320 246 C308 234 298 222 294 206" fill="#4FB5B8" stroke="#0E2240" stroke-width="5" stroke-linejoin="round"/></svg>
   <h1>고래 낙하</h1>
   <p class="hint">함께 읽기 활동지</p>
   <div class="card">
@@ -132,12 +195,14 @@
     <div class="chips hide" id="login-pick"></div>
     <button id="btn-login" style="width:100%;margin-top:10px">시작하기</button>
   </div>
+  <img src="cue_logo.png" alt="진주교육대학교">
   <div class="foot"><a href="#wall">담벼락 화면</a></div>
 </div>
 
 <!-- 활동지 -->
 <div id="v-main" class="hide">
   <div class="top"><div class="in">
+    <svg class="mascot" viewBox="0 -70 600 340" aria-hidden="true"><g fill="#BFEDEE"><circle cx="150" cy="-20" r="13"/><circle cx="186" cy="-48" r="9"/><circle cx="118" cy="-50" r="7"/></g><path d="M150 52 C150 30 140 14 150 0 C160 14 152 30 152 52 Z" fill="#BFEDEE"/><path d="M50 168 C48 96 150 52 280 58 C380 62 450 104 486 146 C500 160 516 160 528 146 L548 104 C556 86 584 92 582 114 C580 138 568 156 552 170 C572 186 588 208 584 232 C580 250 558 250 550 236 L524 196 C486 232 400 252 296 252 C164 252 52 236 50 168 Z" fill="#6CCBCB" stroke="#0E2240" stroke-width="6" stroke-linejoin="round"/><path d="M70 205 C150 244 300 250 420 226 C340 262 150 262 70 205 Z" fill="#FFFFFF" opacity=".75"/><circle cx="118" cy="150" r="9" fill="#0E2240"/><circle cx="121" cy="147" r="3" fill="#FFFFFF"/><ellipse cx="150" cy="184" rx="20" ry="11" fill="#F4A6C0" opacity=".85"/><path d="M68 196 C96 212 130 212 152 202" fill="none" stroke="#0E2240" stroke-width="5" stroke-linecap="round"/><path d="M250 208 C262 236 292 252 320 246 C308 234 298 222 294 206" fill="#4FB5B8" stroke="#0E2240" stroke-width="5" stroke-linejoin="round"/></svg>
     <h1>고래 낙하 활동지</h1>
     <div class="who"><span id="me-label"></span><br><button id="btn-out">팀 바꾸기</button></div>
   </div><svg class="wave" viewBox="0 0 1920 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C320 0 640 60 960 30 C1280 0 1600 60 1920 30 L1920 60 L0 60 Z" fill="#F7F3EA"/></svg></div>
@@ -149,7 +214,7 @@
 
 <!-- 담벼락 -->
 <div id="v-wall" class="hide">
-  <div class="w-head"><span class="no" id="w-no"></span><h1 id="w-title"></h1><div class="cnt"><b id="w-cnt">0</b> 팀<br><span id="w-cnt2"></span></div></div>
+  <div class="w-head"><svg class="mascot" viewBox="0 -70 600 340" aria-hidden="true"><g fill="#BFEDEE"><circle cx="150" cy="-20" r="13"/><circle cx="186" cy="-48" r="9"/><circle cx="118" cy="-50" r="7"/></g><path d="M150 52 C150 30 140 14 150 0 C160 14 152 30 152 52 Z" fill="#BFEDEE"/><path d="M50 168 C48 96 150 52 280 58 C380 62 450 104 486 146 C500 160 516 160 528 146 L548 104 C556 86 584 92 582 114 C580 138 568 156 552 170 C572 186 588 208 584 232 C580 250 558 250 550 236 L524 196 C486 232 400 252 296 252 C164 252 52 236 50 168 Z" fill="#6CCBCB" stroke="#0E2240" stroke-width="6" stroke-linejoin="round"/><path d="M70 205 C150 244 300 250 420 226 C340 262 150 262 70 205 Z" fill="#FFFFFF" opacity=".75"/><circle cx="118" cy="150" r="9" fill="#0E2240"/><circle cx="121" cy="147" r="3" fill="#FFFFFF"/><ellipse cx="150" cy="184" rx="20" ry="11" fill="#F4A6C0" opacity=".85"/><path d="M68 196 C96 212 130 212 152 202" fill="none" stroke="#0E2240" stroke-width="5" stroke-linecap="round"/><path d="M250 208 C262 236 292 252 320 246 C308 234 298 222 294 206" fill="#4FB5B8" stroke="#0E2240" stroke-width="5" stroke-linejoin="round"/></svg><span class="no" id="w-no"></span><h1 id="w-title"></h1><div class="cnt"><b id="w-cnt">0</b> 팀<br><span id="w-cnt2"></span></div></div>
   <div class="w-tabs" id="w-tabs"></div>
   <div class="w-body" id="w-body"></div>
   <div class="w-admin"><input id="w-pw" class="hide" type="password" inputmode="numeric" placeholder="비밀번호" aria-label="관리 비밀번호"><button id="w-adm">관리</button></div>
