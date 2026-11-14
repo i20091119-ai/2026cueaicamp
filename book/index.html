@@ -126,12 +126,11 @@
   <h1>고래 낙하</h1>
   <p class="hint">함께 읽기 활동지</p>
   <div class="card">
-    <label for="in-team">우리 팀 번호</label>
-    <input id="in-team" type="number" inputmode="numeric" min="1" max="40" placeholder="예: 7">
-    <label for="in-name">팀 이름 (없으면 비워 두기)</label>
-    <input id="in-name" type="text" maxlength="12" placeholder="예: 고래 지킴이">
+    <label for="in-last">보호자 전화번호 뒤 네 자리</label>
+    <input id="in-last" type="text" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="예: 1234">
     <div class="err" id="login-err"></div>
-    <button id="btn-login" style="width:100%">시작하기</button>
+    <div class="chips hide" id="login-pick"></div>
+    <button id="btn-login" style="width:100%;margin-top:10px">시작하기</button>
   </div>
   <div class="foot"><a href="#wall">담벼락 화면</a></div>
 </div>
@@ -205,6 +204,7 @@ async function firestoreStore() {
   return {
     set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
     del: id => f.deleteDoc(f.doc(db, COL, id)),
+    fam: async k => { const d = await f.getDoc(f.doc(db, 'families', 'lego_' + k)); return d.exists() ? d.data() : null; },
     watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(row)), e => fatal(e))
   };
 }
@@ -217,6 +217,7 @@ function mockStore() {
   return {
     set: async (id, data) => { const db = read(); db[id] = Object.assign({}, db[id], data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
     del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    fam: async k => { try { return (JSON.parse(localStorage.getItem('book_mockfam')) || {})[k] || null; } catch (e) { return null; } },
     watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
   };
 }
@@ -374,10 +375,21 @@ function renderSheet() {
   if (keep && $(keep)) { $(keep).focus(); try { $(keep).setSelectionRange(pos, pos); } catch (e) {} }
 }
 function renderMain() { $('me-label').textContent = me.team + '팀' + (me.name ? ' · ' + me.name : ''); renderTabs(); renderSheet(); }
-function doLogin() {
-  const t = parseInt($('in-team').value, 10);
-  if (!(t >= 1 && t <= 40)) { $('login-err').textContent = '팀 번호를 숫자로 넣어 주세요.'; return; }
-  me = { team: t, name: $('in-name').value.trim().slice(0, 12) }; lsSet('me', me); show('main'); renderMain();
+function enterTeam(t) { me = { team: t.team, name: (t.name || '').slice(0, 12) }; lsSet('me', me); $('in-last').value = ''; $('login-pick').classList.add('hide'); show('main'); renderMain(); }
+async function doLogin() {
+  const k = $('in-last').value.trim(), err = $('login-err'), pick = $('login-pick');
+  pick.classList.add('hide'); pick.textContent = '';
+  if (!/^\d{4}$/.test(k)) { err.textContent = '숫자 네 자리를 넣어 주세요.'; return; }
+  err.textContent = '확인하는 중…';
+  let fam = null;
+  try { fam = await S.fam(k); } catch (e) { console.error(e); err.textContent = '연결에 문제가 있습니다. 다시 눌러 주세요.'; return; }
+  const teams = fam && fam.teams || [];
+  if (!teams.length) { err.textContent = '등록되지 않은 번호입니다. 선생님께 알려 주세요.'; return; }
+  err.textContent = '';
+  if (teams.length === 1) { enterTeam(teams[0]); return; }
+  err.textContent = '우리 팀을 골라 주세요.';
+  teams.forEach(t => { const b = el('button', '', t.team + '팀 ' + (t.name || '')); b.type = 'button'; b.onclick = () => enterTeam(t); pick.appendChild(b); });
+  pick.classList.remove('hide');
 }
 
 /* ====================== 담벼락 ====================== */
@@ -438,7 +450,7 @@ function route() {
   else show('login');
 }
 $('btn-login').onclick = doLogin;
-$('in-name').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('in-last').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 $('btn-out').onclick = () => { me = null; lsSet('me', null); show('login'); };
 $('w-adm').onclick = () => { if (admin) { admin = false; $('w-adm').textContent = '관리'; renderWall(); } else { $('w-pw').classList.remove('hide'); $('w-pw').focus(); } };
 $('w-pw').addEventListener('keydown', e => { if (e.key !== 'Enter') return; if ($('w-pw').value === ADMIN_PW) { admin = true; $('w-adm').textContent = '관리 끝'; renderWall(); } $('w-pw').value = ''; $('w-pw').classList.add('hide'); });

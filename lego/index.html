@@ -133,6 +133,9 @@ async function firestoreStore() {
   const db = f.getFirestore(initializeApp(firebaseConfig));
   return {
     set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
+    put: (id, data) => f.setDoc(f.doc(db, COL, id), data),
+    famSet: (k, data) => f.setDoc(f.doc(db, 'families', 'lego_' + k), data),
+    famDel: k => f.deleteDoc(f.doc(db, 'families', 'lego_' + k)),
     watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
   };
 }
@@ -144,10 +147,14 @@ function mockStore() {
   window.addEventListener('storage', fire);
   return {
     set: async (id, data) => { const db = read(); db[id] = merge(db[id] || {}, data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    put: async (id, data) => { const db = read(); db[id] = data; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    famSet: async (k, data) => { const m = JSON.parse(localStorage.getItem('book_mockfam') || '{}'); m[k] = data; localStorage.setItem('book_mockfam', JSON.stringify(m)); },
+    famDel: async k => { const m = JSON.parse(localStorage.getItem('book_mockfam') || '{}'); delete m[k]; localStorage.setItem('book_mockfam', JSON.stringify(m)); },
     watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
   };
 }
 
+let roster = null, rosterMsg = '';
 let S = null, data = {}, names = {}, mode = 'mission', team = 1, judge = 'A', judgeName = '', flash = '';
 try { judge = sessionStorage.getItem('lego_j') || 'A'; judgeName = sessionStorage.getItem('lego_jn') || ''; } catch (e) {}
 
@@ -253,11 +260,44 @@ function viewResult(body) {
   });
   sc.appendChild(tb); c.appendChild(sc); body.appendChild(c);
 }
+/* ---------- 명단: 보호자 전화번호 뒤 네 자리로 학생 로그인 ---------- */
+function parseRoster(text) {
+  const out = [], bad = [];
+  text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(l => {
+    const m = l.match(/^(\d{1,2})\s*(?:팀|번)?[\s,\t]+(.*?)[\s,\t]*([\d\-\s]{4,})$/);
+    const digits = m ? m[3].replace(/\D/g, '') : '';
+    if (!m || digits.length < 4 || +m[1] < 1 || +m[1] > TEAMS) { bad.push(l); return; }
+    out.push({ team: +m[1], name: m[2].replace(/[,\t]/g, ' ').trim().slice(0, 12), key: digits.slice(-4) });
+  });
+  return { out, bad };
+}
+async function registerRoster(list) {
+  const by = {}; list.forEach(r => { (by[r.key] = by[r.key] || []).push({ team: r.team, name: r.name }); });
+  const old = roster && roster.keys || [];
+  for (const k of old) if (!by[k]) await S.famDel(k);
+  for (const k in by) await S.famSet(k, { teams: by[k] });
+  await S.put(PRE + 'roster', { keys: Object.keys(by), teams: list.map(r => ({ team: r.team, name: r.name })), ts: Date.now() });
+}
+function viewRoster(body) {
+  const c = el('div', 'card'); c.appendChild(el('h2', null, '참가 명단')); c.lastChild.style.fontSize = '28px';
+  const n = roster && roster.teams ? roster.teams.length : 0;
+  c.appendChild(el('div', 'hint', '학생은 보호자 전화번호 뒤 네 자리로 들어옵니다. 지금 등록된 팀: ' + n + '팀. 새로 등록하면 이전 명단은 지워집니다. 전화번호는 뒤 네 자리만 저장합니다.'));
+  const ta = el('textarea'); ta.rows = 10; ta.placeholder = '한 줄에 한 팀: 팀 번호, 가족 이름, 전화번호\n1 홍길동 가족 010-1234-5678\n2 김철수 가족 010-2222-3333';
+  ta.style.cssText = 'width:100%;font:inherit;font-size:16px;padding:12px;border:2px solid var(--line);border-radius:14px;margin-top:10px'; ta.setAttribute('aria-label', '명단 붙여넣기'); c.appendChild(ta);
+  const bar = el('div', 'bar'); bar.style.marginTop = '10px';
+  const go = el('button', null, '명단 등록'), dm = el('button', 'ghost', '연습용 명단 넣기 (0001~0025)'), msg = el('span', 'saved', rosterMsg);
+  const run = async list => { msg.textContent = '등록 중…'; try { await registerRoster(list); rosterMsg = list.length + '팀 등록됨'; } catch (e) { console.error(e); rosterMsg = '등록 실패 — 다시 눌러 주세요'; } render(); };
+  go.onclick = () => { const { out, bad } = parseRoster(ta.value); if (!out.length || bad.length) { msg.textContent = bad.length ? '읽지 못한 줄: ' + bad[0] : '명단을 붙여 넣어 주세요'; msg.style.color = 'var(--brick)'; return; } run(out); };
+  dm.onclick = () => { const l = []; for (let t = 1; t <= TEAMS; t++) l.push({ team: t, name: '연습 ' + t + '팀', key: String(t).padStart(4, '0') }); run(l); };
+  bar.appendChild(go); bar.appendChild(dm); bar.appendChild(msg); c.appendChild(bar);
+  if (n) { const g = el('div', 'hint'); g.style.marginTop = '12px'; g.textContent = roster.teams.slice().sort((a, b) => a.team - b.team).map(t => t.team + '팀 ' + t.name).join(' · '); c.appendChild(g); }
+  body.appendChild(c);
+}
 function render() {
   const seg = $('mode'); seg.textContent = '';
-  [['mission', '미션 판정'], ['prof', '교수 심사'], ['result', '결과']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('lego_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
+  [['mission', '미션 판정'], ['prof', '교수 심사'], ['result', '결과'], ['roster', '명단']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('lego_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
   const body = $('body'), y = window.scrollY; body.textContent = '';
-  if (mode === 'mission') viewMission(body); else if (mode === 'prof') viewProf(body); else viewResult(body);
+  if (mode === 'mission') viewMission(body); else if (mode === 'prof') viewProf(body); else if (mode === 'roster') viewRoster(body); else viewResult(body);
   window.scrollTo(0, y);
 }
 
@@ -269,9 +309,9 @@ try {
   let first = true, ok = false; try { ok = sessionStorage.getItem('lego_ok') === '1'; } catch (e) {}
   S.watch(list => {
     data = {}; names = {};
-    list.forEach(r => { if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; else if (r.id.indexOf(BOOK) === 0 && r.team && r.name) names[r.team] = r.name; });
+    list.forEach(r => { if (r.id === PRE + 'roster') { roster = r; (r.teams || []).forEach(t => { names[t.team] = t.name; }); } else if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; else if (r.id.indexOf(BOOK) === 0 && r.team && r.name) names[r.team] = r.name; });
     if (first) { first = false; if (ok) enter(); else show('login'); return; }
-    if (!$('v-main').classList.contains('hide') && document.activeElement.tagName !== 'INPUT') render();
+    if (!$('v-main').classList.contains('hide') && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) render();
   });
 } catch (e) { fatal(e); }
 </script>
