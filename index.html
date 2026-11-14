@@ -93,11 +93,9 @@
   <h1>가족 앱 부스 투표</h1>
   <div class="sub">2026 코딩앤메이커 with AI캠프 · 캔바 바이브코딩</div>
   <div class="card" style="margin-top:16px">
-    <div class="sub">보호자 전화번호로 들어옵니다. (예: 010-<b>1234</b>-<b>5678</b>)</div>
-    <label for="in-last">전화번호 뒷자리 4자리 (예: 5678)</label>
+    <div class="sub">보호자 전화번호 뒷자리로 들어옵니다. (예: 010-1234-<b>5678</b>)</div>
+    <label for="in-last">보호자 전화번호 뒷자리 4자리</label>
     <input id="in-last" type="tel" inputmode="numeric" maxlength="4" autocomplete="off">
-    <label for="in-mid">전화번호 가운데 4자리 (예: 1234)</label>
-    <input id="in-mid" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
     <div class="err" id="login-err"></div>
     <button class="full" id="btn-login">들어가기</button>
   </div>
@@ -172,7 +170,7 @@
   <div id="ad-list"></div>
   <details class="card" style="margin-top:24px">
     <summary>가족 등록 · 초기화</summary>
-    <div class="sub" style="margin-top:8px">한 줄에 한 가족씩 "학생이름 전화번호"를 붙여넣으세요. 줄 순서가 부스 번호가 되고, 6가족씩 1·2·3회차로 나뉩니다. 다시 등록해도 이미 입력된 부스 정보는 지워지지 않습니다.</div>
+    <div class="sub" style="margin-top:8px">가족 등록은 하지 않아도 됩니다(가족이 전화번호 뒷자리로 처음 들어오면 자동으로 만들어집니다). 부스 번호와 발표 회차를 미리 정하고 싶을 때만, 가족이 들어오기 전에 한 줄에 한 가족씩 "학생이름 전화번호"를 붙여넣으세요. 줄 순서가 부스 번호가 되고 3회차로 나뉩니다.</div>
     <textarea id="ad-roster" rows="6" placeholder="홍길동 010-1234-5678"></textarea>
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="small" id="btn-roster">가족 등록</button>
@@ -255,7 +253,8 @@ function busy(btn, on, label) {
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 const stop = () => { unsub.forEach(u => u()); unsub = []; };
-const byNo = (a, b) => a.no - b.no;
+const byNo = (a, b) => (a.no || 1e6) - (b.no || 1e6) || (a.at || 0) - (b.at || 0) || (a.id < b.id ? -1 : 1);
+const noLabel = b => b.no ? b.no + '번' : '';
 const mine = () => booths.find(b => b.id === me);
 const ready = b => !!(b && b.app && b.photoVer);
 const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
@@ -305,10 +304,18 @@ function shrink(file) {
 
 /* ---------- 가족 화면 ---------- */
 async function login(key, quiet) {
-  const fam = await S.get('families', key);
-  if (!fam) { if (quiet) { lsSet('key', null); return show('login'); } throw new Error('등록된 번호가 아닙니다. 보호자 전화번호를 다시 확인해 주세요.'); }
+  let fam = await S.get('families', key);
+  if (!fam || !fam.bid) {
+    if (quiet) { lsSet('key', null); return show('login'); }
+    const cfg = await S.get('config', 'main');
+    if (cfg && (cfg.state === '마감' || cfg.state === '공개')) throw new Error('등록되지 않은 번호입니다. 번호를 다시 확인해 주세요.');
+    if (!confirm('"' + key + '" 번호로 처음 들어옵니다.\n우리 가족 보호자 전화번호 뒷자리가 맞으면 [확인]을 눌러 주세요.\n(이미 등록한 가족이라면 [취소]를 누르고 번호를 다시 확인해 주세요.)')) return;
+    fam = { bid: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) };
+    await S.set('booths', fam.bid, { at: Date.now() });
+    await S.set('families', key, fam);
+  }
   lsSet('key', key);
-  me = String(fam.no); sel = {}; dirty = false; myVote = null; cheers = null;
+  me = String(fam.bid); sel = {}; dirty = false; myVote = null; cheers = null;
   let got = 0, started = false;
   const first = () => {
     if (++got < 3 || started) return;
@@ -368,7 +375,7 @@ function renderMain() {
   pendingRender = false;
   const b = mine() || {}, voting = state === '진행', voted = !!(myVote && (myVote.picks || []).length === 3);
   setPic($('me-pic'), b);
-  $('me-label').textContent = '우리 가족 부스 · ' + b.no + '번' + (b.round ? ' · ' + b.round + '회차에 발표' : '');
+  $('me-label').textContent = ['우리 가족 부스', noLabel(b), b.round ? b.round + '회차에 발표' : ''].filter(Boolean).join(' · ');
   $('me-app').textContent = b.app || ''; $('me-team').textContent = b.team || '';
   $('btn-edit').classList.toggle('hide', state === '마감' || state === '공개');
 
@@ -409,7 +416,7 @@ function boothCard(f, voting, voted) {
   const ok = ready(f), on = Object.prototype.hasOwnProperty.call(sel, f.id) && (voting || voted);
   const card = el('div', 'booth' + (ok ? '' : ' off') + (on ? ' on' : '') + (voting && ok ? ' can' : ''));
   const pic = el('img', 'pic'); pic.alt = ''; setPic(pic, f); card.appendChild(pic);
-  card.appendChild(el('div', 'no', f.no + '번'));
+  if (f.no) card.appendChild(el('div', 'no', f.no + '번'));
   card.appendChild(el('div', 'chk', '선택'));
   const body = el('div', 'b');
   body.appendChild(el('div', 'app', ok ? f.app : '준비 중'));
@@ -453,7 +460,7 @@ async function vote() {
   try { await S.set('votes', me, v); dirty = false; myVote = Object.assign({ id: me }, v); syncSel(); renderMain(); }
   catch (e) { renderMain(); $('vote-info').textContent = '투표를 보내지 못했습니다. 다시 눌러 주세요.'; }
 }
-function logout() { stop(); me = null; lsSet('key', null); $('in-mid').value = ''; show('login'); }
+function logout() { stop(); me = null; lsSet('key', null); $('in-last').value = ''; show('login'); }
 
 /* ---------- 관리자 ---------- */
 function adminStart() {
@@ -488,13 +495,13 @@ function adminDo(p) { $('ad-err').textContent = ''; p.catch(() => { $('ad-err').
 function renderAdmin() {
   if (!adminOn) return;
   const showJudge = $('ad-judge').checked, name = {};
-  booths.forEach(b => { name[b.id] = b.team || b.student || b.no + '번'; });
+  booths.forEach(b => { name[b.id] = b.team || b.student || noLabel(b) || '(이름 없음)'; });
   const got = {};
   votes.forEach(v => (v.picks || []).forEach(p => { (got[p.to] = got[p.to] || []).push({ from: name[v.id] || v.id, msg: p.msg }); }));
   const cnt = id => (got[id] || []).length;
   const maxVotes = Math.max(0, ...booths.map(b => cnt(b.id)));
   const list = booths.map(b => ({ b, n: cnt(b.id), j: judge[b.id] || [], s: scoreOf(judge[b.id] || [], cnt(b.id), maxVotes) }));
-  const byVotes = (x, y) => y.n - x.n || x.b.no - y.b.no;
+  const byVotes = (x, y) => y.n - x.n || byNo(x.b, y.b);
   const fin = x => x.s.final == null ? -1 : x.s.final;
   const byFinal = (x, y) => fin(y) - fin(x) || (y.s.judge || 0) - (x.s.judge || 0) || y.s.work - x.s.work || byVotes(x, y);
   const key = sortBy === 'final' ? x => [x.s.final, x.s.judge, x.s.work].join('/') : x => String(x.n);
@@ -515,7 +522,7 @@ function renderAdmin() {
   seg($('ad-sort'), [['votes', '득표순'], ['final', '최종 점수순']], sortBy, v => { sortBy = v; renderAdmin(); });
 
   const box = $('ad-list'); box.textContent = '';
-  if (!booths.length) box.appendChild(el('div', 'sub', '등록된 가족이 없습니다. 아래 [가족 등록 · 초기화]에서 등록부를 붙여넣어 주세요.'));
+  if (!booths.length) box.appendChild(el('div', 'sub', '아직 들어온 가족이 없습니다.'));
   let rank = 0, prev = null;
   list.forEach((x, i) => {
     const b = x.b, s = x.s, k = key(x);
@@ -525,10 +532,15 @@ function renderAdmin() {
     const pic = el('img', 'ph'); pic.alt = ''; setPic(pic, b); hd.appendChild(pic);
     const t = el('div', 't');
     t.appendChild(el('div', 'name', b.app || '(앱 이름 미등록)'));
-    t.appendChild(el('div', 'sub', (b.team || '(모둠 이름 미등록)') + ' · ' + b.no + '번 ' + (b.student || '') + (b.round ? ' · ' + b.round + '회차' : '')));
+    t.appendChild(el('div', 'sub', [b.team || '(모둠 이름 미등록)', (noLabel(b) + ' ' + (b.student || '')).trim(), b.round ? b.round + '회차' : ''].filter(Boolean).join(' · ')));
     const tags = el('div');
     if (!ready(b)) tags.appendChild(el('span', 'tag no', '부스 미등록'));
     tags.appendChild(el('span', 'tag' + (voters.has(b.id) ? '' : ' no'), voters.has(b.id) ? '투표 완료' : '투표 전'));
+    if (!ready(b) && !b.no && !x.n) {
+      const rm = el('button', 'link', '이 부스 삭제');
+      rm.addEventListener('click', () => { if (confirm('잘못 만들어진 빈 부스를 삭제할까요?')) adminDo(Promise.all([S.del('booths', b.id), S.del('votes', b.id)])); });
+      tags.appendChild(rm);
+    }
     t.appendChild(tags); hd.appendChild(t);
     const c = el('div', 'cnt'); c.append(el('b', '', String(x.n)), el('span', '', '표')); hd.appendChild(c);
     row.appendChild(hd);
@@ -572,7 +584,7 @@ async function registerRoster() {
   for (const line of $('ad-roster').value.split('\n')) {
     const m = line.match(/0?1[016789][-\s.)]*\d{4}[-\s.]*\d{4}/);
     if (!m) continue;
-    const key = m[0].replace(/\D/g, '').slice(-8);
+    const key = m[0].replace(/\D/g, '').slice(-4);
     if (seen[key]) continue;
     seen[key] = true;
     fams.push({ key, student: clean(line.replace(m[0], ''), 20) });
@@ -583,7 +595,7 @@ async function registerRoster() {
   const btn = $('btn-roster'); busy(btn, true);
   try {
     await Promise.all(fams.map((f, i) => Promise.all([
-      S.set('families', f.key, { no: i + 1 }),
+      S.set('families', f.key, { bid: String(i + 1) }),
       S.set('booths', String(i + 1), { no: i + 1, student: f.student, round: Math.floor(i / per) + 1 })
     ])));
     $('ad-roster').value = ''; msg.textContent = fams.length + '가족을 등록했습니다.';
@@ -606,16 +618,15 @@ async function clearData(all) {
 
 /* ---------- 이벤트 ---------- */
 async function doLogin() {
-  const l = $('in-last').value.trim(), m = $('in-mid').value.trim(), err = $('login-err');
+  const l = $('in-last').value.trim(), err = $('login-err');
   err.textContent = '';
-  if (!/^\d{4}$/.test(l) || !/^\d{4}$/.test(m)) return void (err.textContent = '숫자 4자리씩 입력해 주세요.');
+  if (!/^\d{4}$/.test(l)) return void (err.textContent = '숫자 4자리를 입력해 주세요.');
   const btn = $('btn-login'); busy(btn, true);
-  try { await login(m + l); } catch (e) { err.textContent = e.code ? '연결에 문제가 있습니다. 다시 눌러 주세요.' : e.message; }
+  try { await login(l); } catch (e) { err.textContent = e.code ? '연결에 문제가 있습니다. 다시 눌러 주세요.' : e.message; }
   busy(btn, false);
 }
 $('btn-login').addEventListener('click', doLogin);
-$('in-mid').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-$('in-last').addEventListener('input', function () { if (this.value.length === 4) $('in-mid').focus(); });
+$('in-last').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 $('btn-to-admin').addEventListener('click', () => { $('admin-err').textContent = ''; show('adminlogin'); });
 $('btn-to-login').addEventListener('click', () => show('login'));
 $('btn-admin-login').addEventListener('click', () => {
@@ -648,7 +659,7 @@ try {
   let admin = null; try { admin = sessionStorage.getItem('admin'); } catch (e) {}
   const key = lsGet('key');
   if (admin) adminStart();
-  else if (key) { $('in-last').value = key.slice(4); await login(key, true); }
+  else if (key) { await login(key, true); }
   else show('login');
 } catch (e) { fatal(e); }
 </script>
