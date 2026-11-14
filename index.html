@@ -170,7 +170,7 @@
   <div id="ad-list"></div>
   <details class="card" style="margin-top:24px">
     <summary>가족 등록 · 초기화</summary>
-    <div class="sub" style="margin-top:8px">가족 등록은 하지 않아도 됩니다(가족이 전화번호 뒷자리로 처음 들어오면 자동으로 만들어집니다). 부스 번호와 발표 회차를 미리 정하고 싶을 때만, 가족이 들어오기 전에 한 줄에 한 가족씩 "학생이름 전화번호"를 붙여넣으세요. 줄 순서가 부스 번호가 되고 3회차로 나뉩니다.</div>
+    <div class="sub" style="margin-top:8px">가족 등록은 하지 않아도 됩니다(가족이 전화번호 뒷자리로 처음 들어오면 자동으로 만들어집니다). 부스 번호와 발표 회기를 미리 정하고 싶을 때만, 가족이 들어오기 전에 한 줄에 한 가족씩 "학생이름 전화번호"를 붙여넣으세요. 줄 순서가 부스 번호가 되고 3회기로 나뉩니다.</div>
     <textarea id="ad-roster" rows="6" placeholder="홍길동 010-1234-5678"></textarea>
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="small" id="btn-roster">가족 등록</button>
@@ -375,7 +375,7 @@ function renderMain() {
   pendingRender = false;
   const b = mine() || {}, voting = state === '진행', voted = !!(myVote && (myVote.picks || []).length === 3);
   setPic($('me-pic'), b);
-  $('me-label').textContent = ['우리 가족 부스', noLabel(b), b.round ? b.round + '회차에 발표' : ''].filter(Boolean).join(' · ');
+  $('me-label').textContent = ['우리 가족 부스', noLabel(b), b.round ? b.round + '회기에 발표' : ''].filter(Boolean).join(' · ');
   $('me-app').textContent = b.app || ''; $('me-team').textContent = b.team || '';
   $('btn-edit').classList.toggle('hide', state === '마감' || state === '공개');
 
@@ -405,7 +405,7 @@ function renderMain() {
   const others = booths.filter(x => x.id !== me);
   const rounds = [...new Set(others.map(x => x.round || 0))].sort();
   rounds.forEach(r => {
-    box.appendChild(el('h2', '', r ? r + '회차 발표 부스' : '다른 가족 부스'));
+    box.appendChild(el('h2', '', r ? r + '회기 발표 부스' : '다른 가족 부스'));
     const grid = el('div', 'grid');
     others.filter(x => (x.round || 0) === r).forEach(f => grid.appendChild(boothCard(f, voting, voted)));
     box.appendChild(grid);
@@ -532,7 +532,7 @@ function renderAdmin() {
     const pic = el('img', 'ph'); pic.alt = ''; setPic(pic, b); hd.appendChild(pic);
     const t = el('div', 't');
     t.appendChild(el('div', 'name', b.app || '(앱 이름 미등록)'));
-    t.appendChild(el('div', 'sub', [b.team || '(모둠 이름 미등록)', (noLabel(b) + ' ' + (b.student || '')).trim(), b.round ? b.round + '회차' : ''].filter(Boolean).join(' · ')));
+    t.appendChild(el('div', 'sub', [b.team || '(모둠 이름 미등록)', (noLabel(b) + ' ' + (b.student || '')).trim(), b.round ? b.round + '회기' : ''].filter(Boolean).join(' · ')));
     const tags = el('div');
     if (!ready(b)) tags.appendChild(el('span', 'tag no', '부스 미등록'));
     tags.appendChild(el('span', 'tag' + (voters.has(b.id) ? '' : ' no'), voters.has(b.id) ? '투표 완료' : '투표 전'));
@@ -591,13 +591,15 @@ async function registerRoster() {
   }
   if (!fams.length) return void (msg.textContent = '전화번호를 찾지 못했습니다.');
   const per = Math.ceil(fams.length / 3);
-  if (!confirm(fams.length + '가족을 등록할까요? (' + per + '가족씩 3회차)')) return;
+  if (!confirm(fams.length + '가족을 등록할까요? (' + per + '가족씩 3회기)')) return;
   const btn = $('btn-roster'); busy(btn, true);
   try {
-    await Promise.all(fams.map((f, i) => Promise.all([
-      S.set('families', f.key, { bid: String(i + 1) }),
-      S.set('booths', String(i + 1), { no: i + 1, student: f.student, round: Math.floor(i / per) + 1 })
-    ])));
+    await Promise.all(fams.map(async (f, i) => {
+      const old = await S.get('families', f.key);          // 이미 들어온 가족이면 그 부스를 그대로 쓴다
+      const bid = old && old.bid ? String(old.bid) : String(i + 1);
+      await S.set('booths', bid, { no: i + 1, student: f.student, round: Math.floor(i / per) + 1 });
+      if (!old || !old.bid) await S.set('families', f.key, { bid });
+    }));
     $('ad-roster').value = ''; msg.textContent = fams.length + '가족을 등록했습니다.';
   } catch (e) { msg.textContent = '등록하지 못했습니다. Firestore 규칙을 확인해 주세요.'; }
   busy(btn, false);
