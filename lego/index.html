@@ -172,6 +172,8 @@ async function firestoreStore() {
     put: (id, data) => f.setDoc(f.doc(db, COL, id), data),
     famSet: (k, data) => f.setDoc(f.doc(db, 'families', 'lego_' + k), data),
     famDel: k => f.deleteDoc(f.doc(db, 'families', 'lego_' + k)),
+    del: id => f.deleteDoc(f.doc(db, COL, id)),
+    bookIds: async () => (await f.getDocs(f.query(f.collection(db, COL), f.where('kind', '==', 'book')))).docs.map(d => d.id),
     // 읽기 횟수를 줄이려고 심사 문서(kind = lego)만 듣는다
     watch: cb => f.onSnapshot(f.query(f.collection(db, COL), f.where('kind', '==', 'lego')), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
   };
@@ -187,6 +189,8 @@ function mockStore() {
     put: async (id, data) => { const db = read(); db[id] = data; localStorage.setItem(K, JSON.stringify(db)); fire(); },
     famSet: async (k, data) => { const m = JSON.parse(localStorage.getItem('book_mockfam') || '{}'); m[k] = data; localStorage.setItem('book_mockfam', JSON.stringify(m)); },
     famDel: async k => { const m = JSON.parse(localStorage.getItem('book_mockfam') || '{}'); delete m[k]; localStorage.setItem('book_mockfam', JSON.stringify(m)); },
+    del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    bookIds: async () => Object.entries(read()).filter(([id, d]) => d.kind === 'book').map(([id]) => id),
     watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
   };
 }
@@ -333,15 +337,41 @@ function viewRoster(body) {
   if (n) { const g = el('div', 'hint'); g.style.marginTop = '12px'; g.textContent = roster.teams.slice().sort((a, b) => a.team - b.team).map(t => t.team + '팀 ' + t.name).join(' · '); c.appendChild(g); }
   body.appendChild(c);
 }
+/* ---------- 숨은 기능: 위쪽 고래를 7번 누르면 전체 지우기가 나온다 ---------- */
+let whaleTaps = 0, wipeOpen = false, wipeArm = '', wipeMsg = '';
+function viewWipe(body) {
+  const c = el('div', 'card'); c.style.borderColor = '#F08A6C';
+  c.appendChild(el('h2', null, '전체 지우기')); c.lastChild.style.fontSize = '28px';
+  c.appendChild(el('div', 'hint', '연습 때 넣은 내용을 비울 때만 씁니다. 지운 내용은 되돌릴 수 없습니다. 명단은 지워지지 않습니다. 단추를 한 번 누르면 확인 문구로 바뀌고, 한 번 더 눌러야 지워집니다.'));
+  const bar = el('div', 'bar'); bar.style.marginTop = '12px';
+  const mk = (key, label, run) => {
+    const b = el('button', wipeArm === key ? '' : 'ghost', wipeArm === key ? '정말 지우기 — 한 번 더 누르기' : label);
+    if (wipeArm === key) { b.style.background = '#B44A33'; b.style.boxShadow = '0 5px 0 #7A2E22'; }
+    b.onclick = async () => {
+      if (wipeArm !== key) { wipeArm = key; wipeMsg = ''; render(); return; }
+      wipeArm = ''; wipeMsg = '지우는 중…'; render();
+      try { const n = await run(); wipeMsg = label.replace(' 모두 지우기', '') + ' ' + n + '건 지움'; } catch (e) { console.error(e); wipeMsg = '지우지 못했습니다. 다시 눌러 주세요.'; }
+      render();
+    };
+    bar.appendChild(b);
+  };
+  mk('score', '심사 점수 모두 지우기', async () => { const ids = Object.values(data).map(r => r.id); for (const id of ids) await S.del(id); return ids.length; });
+  mk('book', '활동지 · 담벼락 글 모두 지우기', async () => { const ids = await S.bookIds(); for (const id of ids) await S.del(id); return ids.length; });
+  const x = el('button', 'ghost small', '닫기'); x.onclick = () => { wipeOpen = false; wipeArm = ''; wipeMsg = ''; whaleTaps = 0; render(); }; bar.appendChild(x);
+  if (wipeMsg) bar.appendChild(el('span', 'saved', wipeMsg));
+  c.appendChild(bar); body.appendChild(c);
+}
 function render() {
   const seg = $('mode'); seg.textContent = '';
   [['mission', '미션 판정'], ['prof', '교수 심사'], ['result', '결과'], ['roster', '명단']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('lego_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
   const body = $('body'), y = window.scrollY; body.textContent = '';
   if (mode === 'mission') viewMission(body); else if (mode === 'prof') viewProf(body); else if (mode === 'roster') viewRoster(body); else viewResult(body);
+  if (wipeOpen) viewWipe(body);
   window.scrollTo(0, y);
 }
 
 function enter() { try { sessionStorage.setItem('lego_ok', '1'); mode = sessionStorage.getItem('lego_mode') || 'mission'; } catch (e) {} show('main'); render(); }
+document.querySelector('.top .mascot').addEventListener('click', () => { if (++whaleTaps >= 7 && !wipeOpen) { wipeOpen = true; render(); window.scrollTo(0, document.body.scrollHeight); } });
 $('btn-login').onclick = () => { if ($('in-pw').value === ADMIN_PW) enter(); else $('login-err').textContent = '비밀번호가 다릅니다.'; };
 $('in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-login').click(); });
 try {
