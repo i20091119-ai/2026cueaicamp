@@ -15,9 +15,9 @@
   .sub { color:var(--sub); font-size:14px; }
   .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; }
   label { display:block; font-weight:600; font-size:14px; margin:14px 0 6px; }
-  input[type=text], input[type=password], input[type=tel], textarea, select {
+  input[type=text], input[type=password], input[type=tel], textarea {
     width:100%; font:inherit; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
-  input:focus, textarea:focus, select:focus { outline:2px solid var(--mint); outline-offset:1px; }
+  input:focus, textarea:focus { outline:2px solid var(--mint); outline-offset:1px; }
   textarea { resize:vertical; min-height:60px; }
   button { font:inherit; font-weight:700; border:0; border-radius:10px; padding:12px 16px; background:var(--mint); color:#fff; cursor:pointer; }
   button:disabled { background:#b9c9c3; cursor:default; }
@@ -39,6 +39,7 @@
   .booth .b { padding:10px 12px 12px; }
   .booth .app { font-weight:700; overflow-wrap:anywhere; }
   .booth .team { color:var(--sub); font-size:13px; overflow-wrap:anywhere; }
+  .booth .no { position:absolute; top:8px; left:8px; background:rgba(28,43,39,.75); color:#fff; border-radius:999px; padding:1px 9px; font-size:12px; }
   .booth.can { cursor:pointer; }
   .booth.on { border-color:var(--mint); box-shadow:0 0 0 3px var(--mint-l); }
   .booth.off { opacity:.55; }
@@ -51,11 +52,12 @@
   .preview { width:100%; max-height:240px; object-fit:contain; border-radius:10px; margin-top:10px; background:#e3ece8; }
   .hide { display:none !important; }
   .top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .cheer { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px; overflow-wrap:anywhere; }
   /* admin */
   .stats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
   .stat { background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 14px; min-width:110px; }
   .stat b { font-size:22px; display:block; }
-  .seg { display:inline-flex; border:1px solid var(--mint); border-radius:10px; overflow:hidden; }
+  .seg { display:inline-flex; border:1px solid var(--mint); border-radius:10px; overflow:hidden; vertical-align:middle; }
   .seg button { border-radius:0; background:#fff; color:var(--mint-d); padding:9px 14px; font-size:14px; }
   .seg button.on { background:var(--mint); color:#fff; }
   .tools { display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin:10px 0 16px; font-size:14px; }
@@ -72,14 +74,17 @@
   summary { cursor:pointer; color:var(--mint-d); font-weight:600; }
   .msg { padding:6px 0; border-bottom:1px dashed var(--line); overflow-wrap:anywhere; }
   .msg i { color:var(--sub); font-style:normal; font-size:12px; }
-  .judge { display:grid; grid-template-columns:auto repeat(3,1fr); gap:6px 8px; align-items:center; margin-top:8px; font-size:13px; }
-  .judge select { padding:6px 8px; }
+  .judge { display:grid; grid-template-columns:auto repeat(3,minmax(0,1fr)); gap:6px 8px; align-items:center; margin-top:8px; font-size:13px; }
   .judge .h { color:var(--sub); text-align:center; }
+  .judge .seg { display:flex; }
+  .judge .seg button { flex:1; padding:7px 0; font-size:13px; }
   .score { margin-top:8px; font-size:14px; }
   .score b { color:var(--mint-d); }
 </style>
 </head>
 <body>
+
+<div id="v-load" class="wrap narrow"><div class="sub" id="load-msg" style="margin-top:40px;text-align:center">불러오는 중…</div></div>
 
 <div id="v-login" class="wrap narrow hide">
   <h1>가족 앱 부스 투표</h1>
@@ -100,7 +105,7 @@
   <h1>관리자</h1>
   <div class="card" style="margin-top:16px">
     <label for="in-pw">관리자 비밀번호</label>
-    <input id="in-pw" type="password" autocomplete="off">
+    <input id="in-pw" type="password" inputmode="numeric" autocomplete="off">
     <div class="err" id="admin-err"></div>
     <button class="full" id="btn-admin-login">대시보드 열기</button>
   </div>
@@ -132,15 +137,15 @@
   <div class="card me" style="margin-top:10px">
     <img id="me-pic" alt="">
     <div class="t">
-      <div class="sub">우리 가족 부스</div>
+      <div class="sub" id="me-label"></div>
       <div class="name" id="me-app"></div>
       <div class="sub" id="me-team"></div>
     </div>
     <button class="ghost small" id="btn-edit">수정</button>
   </div>
   <div id="main-banner"></div>
-  <h2>다른 가족 부스</h2>
-  <div class="grid" id="booths"></div>
+  <div id="cheers" class="hide"></div>
+  <div id="booths"></div>
   <div class="bar hide" id="votebar"><div class="in">
     <div id="vote-info"></div>
     <button id="btn-vote">투표하기</button>
@@ -149,7 +154,7 @@
 
 <div id="v-admin" class="wrap hide">
   <div class="top">
-    <div><h1>관리자 대시보드</h1><div class="sub" id="ad-updated"></div></div>
+    <div><h1>관리자 대시보드</h1><div class="sub">실시간으로 바뀝니다</div></div>
     <button class="link" id="btn-admin-out">나가기</button>
   </div>
   <div class="stats" id="ad-stats"></div>
@@ -160,388 +165,487 @@
   </div>
   <div class="err" id="ad-err"></div>
   <div id="ad-list"></div>
+  <details class="card" style="margin-top:24px">
+    <summary>가족 등록 · 초기화</summary>
+    <div class="sub" style="margin-top:8px">한 줄에 한 가족씩 "학생이름 전화번호"를 붙여넣으세요. 줄 순서가 부스 번호가 되고, 6가족씩 1·2·3회차로 나뉩니다. 다시 등록해도 이미 입력된 부스 정보는 지워지지 않습니다.</div>
+    <textarea id="ad-roster" rows="6" placeholder="홍길동 010-1234-5678"></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="small" id="btn-roster">가족 등록</button>
+      <button class="small ghost" id="btn-clear-votes">투표 모두 지우기</button>
+      <button class="small ghost" id="btn-clear-all">부스 정보·투표·심사 모두 지우기</button>
+    </div>
+    <div class="err" id="ad-roster-msg"></div>
+  </details>
 </div>
 
-<script>
-(function () {
-  var $ = function (id) { return document.getElementById(id); };
-  var VIEWS = ['login', 'adminlogin', 'profile', 'main', 'admin'];
-  var cred = null, adminCred = null, data = null, adata = null;
-  var sel = {};            // 선택한 부스 id -> 응원의 말
-  var dirty = false;       // 서버에 저장된 투표와 다르게 고쳤는지
-  var photos = {};         // id -> {ver, data}
-  var newPhoto = null, timer = null, lastJson = '';
-  var sortBy = 'votes', openMsgs = {};
-  var PTS = [{ '상': 40, '중': 28, '하': 16 }, { '상': 30, '중': 21, '하': 12 }, { '상': 30, '중': 21, '하': 12 }];
+<script type="module">
+/* ====== Firebase 설정: 콘솔에서 받은 firebaseConfig 값을 아래에 넣는다 ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmC7FOUIECxATjvx3jyRgwz-fsfQsuNM",
+  authDomain: "aicue-c952a.firebaseapp.com",
+  projectId: "aicue-c952a",
+  storageBucket: "aicue-c952a.firebasestorage.app",
+  messagingSenderId: "929288201351",
+  appId: "1:929288201351:web:ecab6eb22cfe11fe18c422"
+};
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const ADMIN_PW = '3141';
+const STATES = ['준비', '진행', '마감', '공개'];
+const PTS = [{ '상': 40, '중': 28, '하': 16 }, { '상': 30, '중': 21, '하': 12 }, { '상': 30, '중': 21, '하': 12 }];
 
-  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-  function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+const $ = id => document.getElementById(id);
+const VIEWS = ['load', 'login', 'adminlogin', 'profile', 'main', 'admin'];
 
-  function call(name) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return new Promise(function (ok, fail) {
-      var r = google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) {
-        fail(new Error(String(e && e.message || e).replace(/^(Exception|Error):\s*/, '')));
-      });
-      r[name].apply(r, args);
-    });
-  }
-  function show(v) {
-    VIEWS.forEach(function (n) { $('v-' + n).classList.toggle('hide', n !== v); });
-    clearInterval(timer); timer = null;
-    if (v === 'main') timer = setInterval(pollMain, 30000);
-    if (v === 'admin') timer = setInterval(pollAdmin, 10000);
-    window.scrollTo(0, 0);
-  }
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (text != null) e.textContent = text;
-    return e;
-  }
-  function busy(btn, on, label) {
-    btn.disabled = on;
-    if (on) { btn.dataset.t = btn.textContent; btn.textContent = label || '잠시만요…'; }
-    else if (btn.dataset.t) btn.textContent = btn.dataset.t;
-  }
+/* ---------- 저장소: Firestore (주소에 ?mock 을 붙이면 이 브라우저 안에서만 도는 연습용) ---------- */
+async function firestoreStore() {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  const f = await import(FB + 'firebase-firestore.js');
+  const db = f.getFirestore(initializeApp(firebaseConfig));
+  const row = d => Object.assign({ id: d.id }, d.data());
+  return {
+    get: async (c, id) => { const d = await f.getDoc(f.doc(db, c, id)); return d.exists() ? row(d) : null; },
+    set: (c, id, data) => f.setDoc(f.doc(db, c, id), data, { merge: true }),
+    del: (c, id) => f.deleteDoc(f.doc(db, c, id)),
+    watch: (c, cb) => f.onSnapshot(f.collection(db, c), s => cb(s.docs.map(row)), e => fatal(e)),
+    watchDoc: (c, id, cb) => f.onSnapshot(f.doc(db, c, id), d => cb(d.exists() ? row(d) : null), e => fatal(e)),
+    contains: async (c, field, v) => (await f.getDocs(f.query(f.collection(db, c), f.where(field, 'array-contains', v)))).docs.map(row)
+  };
+}
+function mockStore() {
+  const K = 'mockdb';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const subs = [];
+  const fire = () => subs.slice().forEach(s => s());
+  const write = db => { localStorage.setItem(K, JSON.stringify(db)); fire(); };
+  const list = c => Object.entries(read()[c] || {}).map(([id, d]) => Object.assign({ id }, d));
+  const sub = fn => { subs.push(fn); Promise.resolve().then(fn); return () => subs.splice(subs.indexOf(fn), 1); };
+  window.addEventListener('storage', fire);
+  return {
+    get: async (c, id) => { const d = (read()[c] || {})[id]; return d ? Object.assign({ id }, d) : null; },
+    set: async (c, id, data) => { const db = read(); db[c] = db[c] || {}; db[c][id] = Object.assign({}, db[c][id], data); write(db); },
+    del: async (c, id) => { const db = read(); if (db[c]) delete db[c][id]; write(db); },
+    watch: (c, cb) => sub(() => cb(list(c))),
+    watchDoc: (c, id, cb) => sub(() => cb(list(c).find(d => d.id === id) || null)),
+    contains: async (c, field, v) => list(c).filter(d => (d[field] || []).includes(v))
+  };
+}
 
-  /* ---------- 사진 ---------- */
-  function setPic(img, id, ver) {
-    img.dataset.pid = id; img.dataset.ver = ver || '';
-    var p = photos[id];
-    if (ver && p && p.ver === ver) img.src = p.data; else img.removeAttribute('src');
-  }
-  function loadPhotos(auth) {
-    var need = {};
-    Array.prototype.forEach.call(document.querySelectorAll('img[data-pid]'), function (img) {
-      var id = img.dataset.pid, ver = img.dataset.ver;
-      if (ver && !(photos[id] && photos[id].ver === ver)) need[id] = true;
-    });
-    var ids = Object.keys(need);
-    if (!ids.length) return;
-    call('api_photos', auth, ids.slice(0, 6)).then(function (res) {
-      var got = 0;
-      Object.keys(res).forEach(function (id) { photos[id] = res[id]; got++; });
-      Array.prototype.forEach.call(document.querySelectorAll('img[data-pid]'), function (img) {
-        var p = photos[img.dataset.pid];
-        if (p && p.ver === img.dataset.ver && img.getAttribute('src') !== p.data) img.src = p.data;
-      });
-      if (got) loadPhotos(auth);
-    }).catch(function () {});
-  }
-  function shrink(file) {
-    return new Promise(function (ok, fail) {
-      var url = URL.createObjectURL(file), img = new Image();
-      img.onload = function () {
-        var side = 640, q = 0.8, out = '';
-        for (var i = 0; i < 8; i++) {
-          var k = Math.min(1, side / Math.max(img.width, img.height));
-          var c = document.createElement('canvas');
-          c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
-          var g = c.getContext('2d');
-          g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
-          g.drawImage(img, 0, 0, c.width, c.height);
-          out = c.toDataURL('image/jpeg', q);
-          if (out.length <= 130000) break;
-          if (q > 0.55) q -= 0.12; else side = Math.round(side * 0.8);
-        }
-        URL.revokeObjectURL(url);
-        out.length <= 130000 ? ok(out) : fail(new Error('사진이 너무 큽니다.'));
-      };
-      img.onerror = function () { URL.revokeObjectURL(url); fail(new Error('이 사진은 열 수 없습니다. 다른 사진을 골라 주세요.')); };
-      img.src = url;
-    });
-  }
+let S = null;
+let me = null;            // 내 부스 번호(문자열)
+let booths = [], state = '준비', myVote = null, cheers = null;
+let sel = {}, dirty = false, pendingRender = false;
+let adminOn = false, votes = [], judge = {}, sortBy = 'votes', openMsgs = {};
+let unsub = [];
+const photos = {};        // 부스 번호 -> {ver, data}
+const photoWait = {};
+let newPhoto = null;
 
-  /* ---------- 가족 화면 ---------- */
-  function applyState(d, fromPoll) {
-    data = d;
-    if (!fromPoll || !dirty) {
-      sel = {};
-      d.myVotes.forEach(function (v) { sel[v.to] = v.msg; });
-      dirty = false;
-    }
-    if (!d.me.app || !d.me.photoVer) return openProfile(true);
-    show('main'); renderMain();
-  }
-  function login() {
-    var l = $('in-last').value.trim(), m = $('in-mid').value.trim();
-    $('login-err').textContent = '';
-    if (!/^\d{4}$/.test(l) || !/^\d{4}$/.test(m)) { $('login-err').textContent = '숫자 4자리씩 입력해 주세요.'; return; }
-    var btn = $('btn-login'); busy(btn, true);
-    var c = { last4: l, mid4: m };
-    call('api_state', c).then(function (d) {
-      cred = c; store('cred', c); lastJson = JSON.stringify(d); applyState(d);
-    }).catch(function (e) { $('login-err').textContent = e.message; })
-      .then(function () { busy(btn, false); });
-  }
-  function openProfile(first) {
-    newPhoto = null;
-    $('pf-hello').textContent = (data.me.name ? data.me.name + ' 가족, ' : '') + (first ? '환영합니다! 먼저 우리 가족 부스를 등록해 주세요.' : '부스 정보를 고칠 수 있습니다.');
-    $('pf-team').value = data.me.team; $('pf-app').value = data.me.app;
-    $('pf-file').value = ''; $('pf-err').textContent = '';
-    var prev = $('pf-prev'), p = photos[data.me.id];
-    if (p && p.ver === data.me.photoVer) { prev.src = p.data; prev.classList.remove('hide'); } else prev.classList.add('hide');
-    $('btn-pf-cancel').classList.toggle('hide', !!first);
-    show('profile');
-  }
-  function saveProfile() {
-    var team = $('pf-team').value.trim(), app = $('pf-app').value.trim();
-    var err = $('pf-err'); err.textContent = '';
-    if (!team) { err.textContent = '가족 모둠 이름을 적어 주세요.'; return; }
-    if (!app) { err.textContent = '앱 이름을 적어 주세요.'; return; }
-    if (!newPhoto && !data.me.photoVer) { err.textContent = '앱 대표 사진을 골라 주세요.'; return; }
-    var btn = $('btn-pf-save'); busy(btn, true, '저장하는 중…');
-    call('api_saveProfile', cred, team, app, newPhoto).then(function (d) {
-      if (newPhoto) photos[d.me.id] = { ver: d.me.photoVer, data: newPhoto };
-      lastJson = JSON.stringify(d); applyState(d, true);
-    }).catch(function (e) { err.textContent = e.message; })
-      .then(function () { busy(btn, false); });
-  }
-  function renderMain() {
-    var d = data, voting = d.state === '진행', voted = d.myVotes.length === 3;
-    setPic($('me-pic'), d.me.id, d.me.photoVer);
-    $('me-app').textContent = d.me.app; $('me-team').textContent = d.me.team;
-    $('btn-edit').classList.toggle('hide', d.state === '마감');
-    var b = $('main-banner'); b.textContent = '';
-    var bn = el('div', 'banner');
-    if (d.state === '준비') { bn.className = 'banner wait'; bn.textContent = '아직 투표 시간이 아닙니다. 부스를 둘러본 뒤 안내에 따라 투표해 주세요.'; }
-    else if (d.state === '마감') { bn.className = 'banner end'; bn.textContent = voted ? '투표가 마감되었습니다. 참여해 주셔서 감사합니다!' : '투표가 마감되었습니다.'; }
-    else if (voted && !dirty) bn.textContent = '투표를 마쳤습니다! 마감 전까지는 바꿀 수 있습니다.';
-    else bn.textContent = '가장 좋았던 앱 3곳을 눌러 골라 주세요. 한 부스에 한 표씩, 응원의 말도 남길 수 있습니다.';
-    b.appendChild(bn);
+function show(v) { VIEWS.forEach(n => $('v-' + n).classList.toggle('hide', n !== v)); window.scrollTo(0, 0); }
+function fatal(e) { console.error(e); $('load-msg').textContent = '연결에 문제가 있습니다. 화면을 새로 고쳐 주세요. (' + (e && e.code || e && e.message || e) + ')'; show('load'); }
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function busy(btn, on, label) {
+  btn.disabled = on;
+  if (on) { btn.dataset.t = btn.textContent; btn.textContent = label || '잠시만요…'; } else if (btn.dataset.t) btn.textContent = btn.dataset.t;
+}
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const stop = () => { unsub.forEach(u => u()); unsub = []; };
+const byNo = (a, b) => a.no - b.no;
+const mine = () => booths.find(b => b.id === me);
+const ready = b => !!(b && b.app && b.photoVer);
+const clean = (s, n) => String(s || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 
-    var grid = $('booths'); grid.textContent = '';
-    if (!d.booths.length) grid.appendChild(el('div', 'sub', '아직 등록된 부스가 없습니다.'));
-    d.booths.forEach(function (f) {
-      var ready = !!f.app, on = sel.hasOwnProperty(f.id) && (voting || voted);
-      var card = el('div', 'booth' + (ready ? '' : ' off') + (on ? ' on' : '') + (voting && ready ? ' can' : ''));
-      var pic = el('img', 'pic'); pic.alt = ''; setPic(pic, f.id, f.photoVer); card.appendChild(pic);
-      card.appendChild(el('div', 'chk', '선택'));
-      var body = el('div', 'b');
-      body.appendChild(el('div', 'app', ready ? f.app : '준비 중'));
-      body.appendChild(el('div', 'team', ready ? f.team : '아직 등록 전인 가족'));
-      if (on && voting) {
-        var ta = el('textarea'); ta.maxLength = 200; ta.placeholder = '좋았던 점이나 응원의 말 (선택)';
-        ta.value = sel[f.id] || '';
-        ta.addEventListener('click', function (e) { e.stopPropagation(); });
-        ta.addEventListener('input', function () { sel[f.id] = ta.value; dirty = true; updateBar(); });
-        body.appendChild(ta);
-      } else if (on && sel[f.id]) body.appendChild(el('div', 'sub', '“' + sel[f.id] + '”'));
-      card.appendChild(body);
-      if (voting && ready) card.addEventListener('click', function () { toggle(f.id); });
-      grid.appendChild(card);
-    });
-    updateBar();
-    loadPhotos(cred);
-  }
-  function toggle(id) {
-    if (sel.hasOwnProperty(id)) delete sel[id];
-    else {
-      if (Object.keys(sel).length >= 3) { $('vote-info').textContent = '3곳까지만 고를 수 있습니다. 다른 부스를 눌러 빼고 골라 주세요.'; return; }
-      sel[id] = '';
-    }
-    dirty = true; renderMain();
-  }
-  function updateBar() {
-    var voting = data.state === '진행', n = Object.keys(sel).length;
-    $('votebar').classList.toggle('hide', !voting);
-    if (!voting) return;
-    var voted = data.myVotes.length === 3;
-    $('vote-info').textContent = (voted && !dirty) ? '투표 완료 (3곳)' : '3곳 중 ' + n + '곳 선택';
-    var btn = $('btn-vote');
-    if (!btn.dataset.t || !btn.disabled || btn.textContent !== '잠시만요…') btn.textContent = voted ? '투표 바꾸기' : '투표하기';
-    btn.disabled = n !== 3 || (voted && !dirty);
-  }
-  function vote() {
-    var ids = Object.keys(sel);
-    if (ids.length !== 3) return;
-    var btn = $('btn-vote'); btn.disabled = true; btn.textContent = '잠시만요…';
-    call('api_vote', cred, ids.map(function (id) { return { to: id, msg: sel[id] || '' }; })).then(function (d) {
-      dirty = false; lastJson = JSON.stringify(d); applyState(d);
-    }).catch(function (e) {
-      renderMain(); $('vote-info').textContent = e.message;
-    });
-  }
-  function pollMain() {
-    if (!cred) return;
-    call('api_state', cred).then(function (d) {
-      var j = JSON.stringify(d);
-      if (j === lastJson || $('v-main').classList.contains('hide')) return;
-      if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
-      lastJson = j;
-      if (d.state !== '진행') dirty = false;
-      Object.keys(sel).forEach(function (id) {   // 사라진 부스는 선택에서 뺀다
-        if (!d.booths.some(function (f) { return f.id === id && f.app; })) delete sel[id];
-      });
-      applyState(d, true);
-    }).catch(function () {});
-  }
-  function logout() { cred = null; data = null; sel = {}; dirty = false; store('cred', null); $('in-mid').value = ''; show('login'); }
-
-  /* ---------- 관리자 ---------- */
-  function adminLogin(pw, quiet) {
-    var btn = $('btn-admin-login'); busy(btn, true);
-    var c = { admin: pw };
-    return call('api_admin', c).then(function (d) {
-      adminCred = c; try { sessionStorage.setItem('admin', pw); } catch (e) {}
-      adata = d; show('admin'); renderAdmin();
-    }).catch(function (e) {
-      if (!quiet) $('admin-err').textContent = e.message; else show('login');
-    }).then(function () { busy(btn, false); });
-  }
-  function judgeTotal(j, k) {   // k번째 심사위원 합계 (세 항목 모두 표시해야 계산)
-    var s = 0;
-    for (var i = 0; i < 3; i++) { var p = PTS[i][j[k * 3 + i]]; if (!p) return null; s += p; }
-    return s;
-  }
-  function scoreOf(f, maxVotes) {
-    var t = [judgeTotal(f.judge, 0), judgeTotal(f.judge, 1)].filter(function (x) { return x != null; });
-    var judge = t.length ? (t[0] + (t.length > 1 ? t[1] : t[0])) / 2 : null;
-    var work = [1, 4].map(function (i) { return PTS[1][f.judge[i]] || 0; });
-    var sticker = maxVotes ? f.votes / maxVotes * 100 : 0;
-    return { judge: judge, judges: t.length, sticker: sticker, work: work[0] + work[1],
-      final: judge == null ? null : judge * 0.7 + sticker * 0.3 };
-  }
-  function seg(box, items, cur, fn) {
-    box.textContent = '';
-    items.forEach(function (it) {
-      var b = el('button', it[0] === cur ? 'on' : '', it[1]);
-      b.addEventListener('click', function () { fn(it[0]); });
-      box.appendChild(b);
-    });
-  }
-  function renderAdmin() {
-    var d = adata, showJudge = $('ad-judge').checked;
-    var maxVotes = Math.max.apply(null, d.fams.map(function (f) { return f.votes; }).concat([0]));
-    var list = d.fams.map(function (f) { return { f: f, s: scoreOf(f, maxVotes) }; });
-    var byVotes = function (a, b) { return b.f.votes - a.f.votes || (a.f.id < b.f.id ? -1 : 1); };
-    var byFinal = function (a, b) {
-      return (b.s.final == null ? -1 : b.s.final) - (a.s.final == null ? -1 : a.s.final) ||
-        (b.s.judge || 0) - (a.s.judge || 0) || b.s.work - a.s.work || byVotes(a, b);
+/* ---------- 사진 ---------- */
+function setPic(img, b) {
+  const ver = b && b.photoVer || '';
+  img.dataset.pid = b ? b.id : ''; img.dataset.ver = ver;
+  const p = b && photos[b.id];
+  if (ver && p && p.ver === ver) img.src = p.data;
+  else { img.removeAttribute('src'); if (ver) fetchPhoto(b.id, ver); }
+}
+function fetchPhoto(id, ver) {
+  const k = id + '/' + ver;
+  if (photoWait[k]) return;
+  photoWait[k] = true;
+  S.get('photos', id).then(p => {
+    delete photoWait[k];
+    if (!p) return;
+    photos[id] = { ver: p.ver, data: p.data };
+    document.querySelectorAll('img[data-pid="' + id + '"]').forEach(img => { if (img.dataset.ver === p.ver) img.src = p.data; });
+  }).catch(() => { delete photoWait[k]; });
+}
+function shrink(file) {
+  return new Promise((ok, fail) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      let side = 800, q = 0.8, out = '';
+      for (let i = 0; i < 8; i++) {
+        const k = Math.min(1, side / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+        const g = c.getContext('2d');
+        g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        out = c.toDataURL('image/jpeg', q);
+        if (out.length <= 400000) break;
+        if (q > 0.55) q -= 0.12; else side = Math.round(side * 0.8);
+      }
+      URL.revokeObjectURL(url);
+      out.length <= 400000 ? ok(out) : fail(new Error('사진이 너무 큽니다. 다른 사진을 골라 주세요.'));
     };
-    var key = sortBy === 'final'
-      ? function (x) { return [x.s.final, x.s.judge, x.s.work].join('/'); }
-      : function (x) { return String(x.f.votes); };
-    list.sort(sortBy === 'final' ? byFinal : byVotes);
-
-    var done = d.fams.filter(function (f) { return f.app; }).length;
-    var voted = d.fams.filter(function (f) { return f.voted; }).length;
-    var total = d.fams.reduce(function (s, f) { return s + f.votes; }, 0);
-    var st = $('ad-stats'); st.textContent = '';
-    [['부스 등록', done + ' / ' + d.fams.length], ['투표한 가족', voted + ' / ' + d.fams.length], ['모인 표', total + '표']].forEach(function (x) {
-      var s = el('div', 'stat'); s.appendChild(el('span', 'sub', x[0])); s.appendChild(el('b', '', x[1])); st.appendChild(s);
-    });
-    seg($('ad-state'), [['준비', '준비'], ['진행', '투표 진행'], ['마감', '마감']], d.state, function (v) {
-      if (v === d.state) return;
-      if (v === '마감' && !confirm('투표를 마감할까요? 마감하면 가족들은 더 이상 투표를 바꿀 수 없습니다.')) return;
-      adminDo(call('api_adminState', adminCred, v));
-    });
-    seg($('ad-sort'), [['votes', '득표순'], ['final', '최종 점수순']], sortBy, function (v) { sortBy = v; renderAdmin(); });
-    $('ad-updated').textContent = new Date().toLocaleTimeString('ko-KR') + ' 기준 · 10초마다 새로 고침';
-
-    var box = $('ad-list'); box.textContent = '';
-    if (!d.fams.length) box.appendChild(el('div', 'sub', '[가족] 탭에 등록된 가족이 없습니다. 시트 메뉴 [캠프 > 등록부에서 가족 불러오기]를 실행하세요.'));
-    var rank = 0, prev = null;
-    list.forEach(function (x, i) {
-      var f = x.f, s = x.s, k = key(x);
-      if (k !== prev) { rank = i + 1; prev = k; }
-      var row = el('div', 'row'), hd = el('div', 'hd');
-      hd.appendChild(el('div', 'rank', String(rank)));
-      var pic = el('img', 'ph'); pic.alt = ''; setPic(pic, f.id, f.photoVer); hd.appendChild(pic);
-      var t = el('div', 't');
-      t.appendChild(el('div', 'name', f.app || '(앱 이름 미등록)'));
-      t.appendChild(el('div', 'sub', (f.team || '(모둠 이름 미등록)') + ' · ' + f.id + (f.name ? ' ' + f.name : '')));
-      var tags = el('div');
-      if (!f.app) tags.appendChild(el('span', 'tag no', '부스 미등록'));
-      tags.appendChild(el('span', 'tag' + (f.voted ? '' : ' no'), f.voted ? '투표 완료' : '투표 전'));
-      t.appendChild(tags); hd.appendChild(t);
-      var c = el('div', 'cnt'); c.appendChild(el('b', '', String(f.votes))); c.appendChild(el('span', '', '표')); hd.appendChild(c);
-      row.appendChild(hd);
-
-      if (showJudge) {
-        var sc = el('div', 'score');
-        sc.appendChild(document.createTextNode('심사 ' + (s.judge == null ? '–' : s.judge.toFixed(1)) + (s.judges === 1 ? ' (1명만 입력)' : '') +
-          ' × 0.7 + 스티커 ' + s.sticker.toFixed(1) + ' × 0.3 = '));
-        sc.appendChild(el('b', '', s.final == null ? '–' : s.final.toFixed(1) + '점'));
-        row.appendChild(sc);
-        var jg = el('div', 'judge');
-        ['', '① 문제 해결', '② 작동', '③ 학생 설명'].forEach(function (h) { jg.appendChild(el('div', 'h', h)); });
-        [0, 1].forEach(function (jn) {
-          jg.appendChild(el('div', '', '심사위원 ' + (jn + 1)));
-          [0, 1, 2].forEach(function (it) {
-            var col = jn * 3 + it, sl = el('select');
-            [''].concat(Object.keys(PTS[it])).forEach(function (v) {
-              var o = el('option', '', v ? v + ' ' + PTS[it][v] : '–'); o.value = v; sl.appendChild(o);
-            });
-            sl.value = f.judge[col] || '';
-            sl.addEventListener('change', function () { sl.blur(); adminDo(call('api_adminScore', adminCred, f.id, col, sl.value)); });
-            jg.appendChild(sl);
-          });
-        });
-        row.appendChild(jg);
-      }
-      if (f.msgs.length) {
-        var det = el('details'); det.open = !!openMsgs[f.id];
-        det.appendChild(el('summary', '', '응원의 말 ' + f.msgs.length + '개'));
-        f.msgs.forEach(function (m) {
-          var p = el('div', 'msg'); p.appendChild(document.createTextNode(m.msg + ' ')); p.appendChild(el('i', '', '— ' + m.from)); det.appendChild(p);
-        });
-        det.addEventListener('toggle', function () { openMsgs[f.id] = det.open; });
-        row.appendChild(det);
-      }
-      box.appendChild(row);
-    });
-    loadPhotos(adminCred);
-  }
-  function adminDo(p) {
-    $('ad-err').textContent = '';
-    p.then(function (d) { adata = d; renderAdmin(); }).catch(function (e) { $('ad-err').textContent = e.message; renderAdmin(); });
-  }
-  function pollAdmin() {
-    if (!adminCred) return;
-    call('api_admin', adminCred).then(function (d) {
-      if ($('v-admin').classList.contains('hide')) return;
-      if (document.activeElement && document.activeElement.tagName === 'SELECT') return;
-      adata = d; renderAdmin();
-    }).catch(function () {});
-  }
-
-  /* ---------- 이벤트 ---------- */
-  $('btn-login').addEventListener('click', login);
-  $('in-mid').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
-  $('in-last').addEventListener('input', function () { if (this.value.length === 4) $('in-mid').focus(); });
-  $('btn-to-admin').addEventListener('click', function () { $('admin-err').textContent = ''; show('adminlogin'); });
-  $('btn-to-login').addEventListener('click', function () { show('login'); });
-  $('btn-admin-login').addEventListener('click', function () { $('admin-err').textContent = ''; adminLogin($('in-pw').value); });
-  $('in-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btn-admin-login').click(); });
-  $('btn-admin-out').addEventListener('click', function () { adminCred = null; try { sessionStorage.removeItem('admin'); } catch (e) {} $('in-pw').value = ''; show('login'); });
-  $('ad-judge').addEventListener('change', renderAdmin);
-  $('btn-logout').addEventListener('click', logout);
-  $('btn-edit').addEventListener('click', function () { openProfile(false); });
-  $('btn-pf-cancel').addEventListener('click', function () { show('main'); renderMain(); });
-  $('btn-pf-save').addEventListener('click', saveProfile);
-  $('btn-vote').addEventListener('click', vote);
-  $('pf-file').addEventListener('change', function () {
-    var f = this.files && this.files[0], err = $('pf-err');
-    if (!f) return;
-    err.textContent = '';
-    shrink(f).then(function (d) {
-      newPhoto = d; $('pf-prev').src = d; $('pf-prev').classList.remove('hide');
-    }).catch(function (e) { newPhoto = null; err.textContent = e.message; });
+    img.onerror = () => { URL.revokeObjectURL(url); fail(new Error('이 사진은 열 수 없습니다. 다른 사진을 골라 주세요.')); };
+    img.src = url;
   });
+}
 
-  /* ---------- 시작 ---------- */
-  var savedAdmin = null;
-  try { savedAdmin = sessionStorage.getItem('admin'); } catch (e) {}
-  var saved = load('cred');
-  if (savedAdmin) adminLogin(savedAdmin, true);
-  else if (saved && saved.last4) {
-    $('in-last').value = saved.last4;
-    call('api_state', saved).then(function (d) { cred = saved; lastJson = JSON.stringify(d); applyState(d); })
-      .catch(function () { store('cred', null); show('login'); });
-  } else show('login');
-})();
+/* ---------- 가족 화면 ---------- */
+async function login(key, quiet) {
+  const fam = await S.get('families', key);
+  if (!fam) { if (quiet) { lsSet('key', null); return show('login'); } throw new Error('등록된 번호가 아닙니다. 보호자 전화번호를 다시 확인해 주세요.'); }
+  lsSet('key', key);
+  me = String(fam.no); sel = {}; dirty = false; myVote = null; cheers = null;
+  let got = 0, started = false;
+  const first = () => {
+    if (++got < 3 || started) return;
+    started = true;
+    syncSel();
+    if (!ready(mine())) openProfile(true); else { show('main'); renderMain(); }
+  };
+  const after = fn => v => { fn(v); if (started) onData(); else first(); };
+  stop();
+  unsub.push(S.watch('booths', after(v => { booths = v.sort(byNo); })));
+  unsub.push(S.watchDoc('config', 'main', after(v => { state = v && STATES.includes(v.state) ? v.state : '준비'; })));
+  unsub.push(S.watchDoc('votes', me, after(v => { myVote = v; })));
+}
+function syncSel() {
+  if (dirty && state === '진행') return;
+  sel = {}; dirty = false;
+  (myVote && myVote.picks || []).forEach(p => { sel[p.to] = p.msg || ''; });
+}
+function onData() {
+  if ($('v-main').classList.contains('hide')) return;
+  if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') { pendingRender = true; return; }
+  syncSel(); renderMain();
+}
+function openProfile(first) {
+  const b = mine() || {};
+  newPhoto = null;
+  $('pf-hello').textContent = (b.student ? b.student + ' 가족, ' : '') + (first ? '환영합니다! 먼저 우리 가족 부스를 등록해 주세요.' : '부스 정보를 고칠 수 있습니다.');
+  $('pf-team').value = b.team || ''; $('pf-app').value = b.app || '';
+  $('pf-file').value = ''; $('pf-err').textContent = '';
+  const prev = $('pf-prev'), p = photos[me];
+  if (p && p.ver === b.photoVer) { prev.src = p.data; prev.classList.remove('hide'); } else prev.classList.add('hide');
+  $('btn-pf-cancel').classList.toggle('hide', !!first);
+  show('profile');
+}
+async function saveProfile() {
+  const team = clean($('pf-team').value, 20), app = clean($('pf-app').value, 30), b = mine() || {};
+  const err = $('pf-err'); err.textContent = '';
+  if (!team) return void (err.textContent = '가족 모둠 이름을 적어 주세요.');
+  if (!app) return void (err.textContent = '앱 이름을 적어 주세요.');
+  if (!newPhoto && !b.photoVer) return void (err.textContent = '앱 대표 사진을 골라 주세요.');
+  if (state === '마감' || state === '공개') return void (err.textContent = '투표가 마감되어 더 이상 바꿀 수 없습니다.');
+  const btn = $('btn-pf-save'); busy(btn, true, '저장하는 중…');
+  try {
+    const data = { team, app };
+    if (newPhoto) {
+      data.photoVer = String(Date.now());
+      await S.set('photos', me, { ver: data.photoVer, data: newPhoto });
+      photos[me] = { ver: data.photoVer, data: newPhoto };
+    }
+    await S.set('booths', me, data);
+    Object.assign(b, data);
+    show('main'); syncSel(); renderMain();
+  } catch (e) { err.textContent = '저장하지 못했습니다. 다시 눌러 주세요.'; }
+  busy(btn, false);
+}
+function renderMain() {
+  pendingRender = false;
+  const b = mine() || {}, voting = state === '진행', voted = !!(myVote && (myVote.picks || []).length === 3);
+  setPic($('me-pic'), b);
+  $('me-label').textContent = '우리 가족 부스 · ' + b.no + '번' + (b.round ? ' · ' + b.round + '회차에 발표' : '');
+  $('me-app').textContent = b.app || ''; $('me-team').textContent = b.team || '';
+  $('btn-edit').classList.toggle('hide', state === '마감' || state === '공개');
+
+  const bn = el('div', 'banner');
+  if (state === '준비') { bn.className = 'banner wait'; bn.textContent = '아직 투표 시간이 아닙니다. 부스를 둘러본 뒤 안내에 따라 투표해 주세요.'; }
+  else if (state === '마감') { bn.className = 'banner end'; bn.textContent = voted ? '투표가 마감되었습니다. 참여해 주셔서 감사합니다!' : '투표가 마감되었습니다.'; }
+  else if (state === '공개') bn.textContent = '다른 가족들이 우리 가족에게 남긴 응원의 말입니다.';
+  else if (voted && !dirty) bn.textContent = '투표를 마쳤습니다! 마감 전까지는 바꿀 수 있습니다.';
+  else bn.textContent = '가장 좋았던 앱 3곳을 눌러 골라 주세요. 한 부스에 한 표씩, 응원의 말도 남길 수 있습니다.';
+  $('main-banner').replaceChildren(bn);
+
+  const ch = $('cheers');
+  ch.classList.toggle('hide', state !== '공개');
+  if (state === '공개') {
+    if (!cheers) {
+      cheers = [];
+      S.contains('votes', 'to', me).then(vs => {
+        cheers = vs.map(v => (v.picks || []).find(p => p.to === me)).filter(p => p && p.msg).map(p => p.msg);
+        if (!cheers.length) cheers = ['(남겨진 응원의 말이 없습니다)'];
+        if (state === '공개') renderMain();
+      }).catch(() => { cheers = null; });
+    }
+    ch.replaceChildren(...cheers.map(m => el('div', 'cheer', m)));
+  } else cheers = null;
+
+  const box = $('booths'); box.textContent = '';
+  const others = booths.filter(x => x.id !== me);
+  const rounds = [...new Set(others.map(x => x.round || 0))].sort();
+  rounds.forEach(r => {
+    box.appendChild(el('h2', '', r ? r + '회차 발표 부스' : '다른 가족 부스'));
+    const grid = el('div', 'grid');
+    others.filter(x => (x.round || 0) === r).forEach(f => grid.appendChild(boothCard(f, voting, voted)));
+    box.appendChild(grid);
+  });
+  updateBar();
+}
+function boothCard(f, voting, voted) {
+  const ok = ready(f), on = Object.prototype.hasOwnProperty.call(sel, f.id) && (voting || voted);
+  const card = el('div', 'booth' + (ok ? '' : ' off') + (on ? ' on' : '') + (voting && ok ? ' can' : ''));
+  const pic = el('img', 'pic'); pic.alt = ''; setPic(pic, f); card.appendChild(pic);
+  card.appendChild(el('div', 'no', f.no + '번'));
+  card.appendChild(el('div', 'chk', '선택'));
+  const body = el('div', 'b');
+  body.appendChild(el('div', 'app', ok ? f.app : '준비 중'));
+  body.appendChild(el('div', 'team', ok ? f.team : '아직 등록 전인 가족'));
+  if (on && voting) {
+    const ta = el('textarea'); ta.maxLength = 200; ta.placeholder = '좋았던 점이나 응원의 말 (선택)';
+    ta.value = sel[f.id] || '';
+    ta.addEventListener('click', e => e.stopPropagation());
+    ta.addEventListener('input', () => { sel[f.id] = ta.value; dirty = true; updateBar(); });
+    ta.addEventListener('blur', () => { if (pendingRender) setTimeout(onData, 0); });
+    body.appendChild(ta);
+  } else if (on && sel[f.id]) body.appendChild(el('div', 'sub', '“' + sel[f.id] + '”'));
+  card.appendChild(body);
+  if (voting && ok) card.addEventListener('click', () => toggle(f.id));
+  return card;
+}
+function toggle(id) {
+  if (Object.prototype.hasOwnProperty.call(sel, id)) delete sel[id];
+  else {
+    if (Object.keys(sel).length >= 3) { $('vote-info').textContent = '3곳까지만 고를 수 있습니다. 고른 부스를 다시 눌러 빼고 골라 주세요.'; return; }
+    sel[id] = '';
+  }
+  dirty = true; renderMain();
+}
+function validSel() { return Object.keys(sel).filter(id => id !== me && ready(booths.find(b => b.id === id))); }
+function updateBar() {
+  const voting = state === '진행';
+  $('votebar').classList.toggle('hide', !voting);
+  if (!voting) return;
+  const n = validSel().length, voted = !!(myVote && (myVote.picks || []).length === 3);
+  $('vote-info').textContent = (voted && !dirty) ? '투표 완료 (3곳)' : '3곳 중 ' + n + '곳 선택';
+  const btn = $('btn-vote');
+  btn.textContent = voted ? '투표 바꾸기' : '투표하기';
+  btn.disabled = n !== 3 || Object.keys(sel).length !== 3 || (voted && !dirty);
+}
+async function vote() {
+  const ids = validSel();
+  if (ids.length !== 3 || state !== '진행') return;
+  const btn = $('btn-vote'); btn.disabled = true; btn.textContent = '잠시만요…';
+  const v = { from: me, to: ids, picks: ids.map(id => ({ to: id, msg: clean(sel[id], 200) })), at: Date.now() };
+  try { await S.set('votes', me, v); dirty = false; myVote = Object.assign({ id: me }, v); syncSel(); renderMain(); }
+  catch (e) { renderMain(); $('vote-info').textContent = '투표를 보내지 못했습니다. 다시 눌러 주세요.'; }
+}
+function logout() { stop(); me = null; lsSet('key', null); $('in-mid').value = ''; show('login'); }
+
+/* ---------- 관리자 ---------- */
+function adminStart() {
+  adminOn = true; try { sessionStorage.setItem('admin', '1'); } catch (e) {}
+  stop();
+  const r = fn => v => { fn(v); renderAdmin(); };
+  unsub.push(S.watch('booths', r(v => { booths = v.sort(byNo); })));
+  unsub.push(S.watch('votes', r(v => { votes = v; })));
+  unsub.push(S.watch('judge', r(v => { judge = {}; v.forEach(j => { judge[j.id] = j.s || []; }); })));
+  unsub.push(S.watchDoc('config', 'main', r(v => { state = v && STATES.includes(v.state) ? v.state : '준비'; })));
+  show('admin');
+}
+function judgeTotal(j, k) {   // k번째 심사위원 합계 (세 항목 모두 표시해야 계산)
+  let s = 0;
+  for (let i = 0; i < 3; i++) { const p = PTS[i][j[k * 3 + i]]; if (!p) return null; s += p; }
+  return s;
+}
+function scoreOf(j, n, maxVotes) {
+  const t = [judgeTotal(j, 0), judgeTotal(j, 1)].filter(x => x != null);
+  const jd = t.length ? t.reduce((a, b) => a + b, 0) / t.length : null;
+  const sticker = maxVotes ? n / maxVotes * 100 : 0;
+  return { judge: jd, judges: t.length, sticker, work: (PTS[1][j[1]] || 0) + (PTS[1][j[4]] || 0), final: jd == null ? null : jd * 0.7 + sticker * 0.3 };
+}
+function seg(box, items, cur, fn) {
+  box.replaceChildren(...items.map(it => {
+    const b = el('button', it[0] === cur ? 'on' : '', it[1]);
+    b.addEventListener('click', () => fn(it[0]));
+    return b;
+  }));
+}
+function adminDo(p) { $('ad-err').textContent = ''; p.catch(() => { $('ad-err').textContent = '저장하지 못했습니다. 다시 시도해 주세요.'; }); }
+function renderAdmin() {
+  if (!adminOn) return;
+  const showJudge = $('ad-judge').checked, name = {};
+  booths.forEach(b => { name[b.id] = b.team || b.student || b.no + '번'; });
+  const got = {};
+  votes.forEach(v => (v.picks || []).forEach(p => { (got[p.to] = got[p.to] || []).push({ from: name[v.id] || v.id, msg: p.msg }); }));
+  const cnt = id => (got[id] || []).length;
+  const maxVotes = Math.max(0, ...booths.map(b => cnt(b.id)));
+  const list = booths.map(b => ({ b, n: cnt(b.id), j: judge[b.id] || [], s: scoreOf(judge[b.id] || [], cnt(b.id), maxVotes) }));
+  const byVotes = (x, y) => y.n - x.n || x.b.no - y.b.no;
+  const fin = x => x.s.final == null ? -1 : x.s.final;
+  const byFinal = (x, y) => fin(y) - fin(x) || (y.s.judge || 0) - (x.s.judge || 0) || y.s.work - x.s.work || byVotes(x, y);
+  const key = sortBy === 'final' ? x => [x.s.final, x.s.judge, x.s.work].join('/') : x => String(x.n);
+  list.sort(sortBy === 'final' ? byFinal : byVotes);
+
+  const voters = new Set(votes.map(v => v.id));
+  $('ad-stats').replaceChildren(...[
+    ['부스 등록', booths.filter(ready).length + ' / ' + booths.length],
+    ['투표한 가족', voters.size + ' / ' + booths.length],
+    ['모인 표', list.reduce((s, x) => s + x.n, 0) + '표']
+  ].map(x => { const s = el('div', 'stat'); s.append(el('span', 'sub', x[0]), el('b', '', x[1])); return s; }));
+  seg($('ad-state'), [['준비', '준비'], ['진행', '투표 진행'], ['마감', '마감'], ['공개', '응원 공개']], state, v => {
+    if (v === state) return;
+    if (v === '마감' && !confirm('투표를 마감할까요? 가족들은 더 이상 투표를 바꿀 수 없습니다.')) return;
+    if (v === '공개' && !confirm('각 가족 화면에 받은 응원의 말을 공개할까요? (득표수는 보이지 않습니다)')) return;
+    adminDo(S.set('config', 'main', { state: v }));
+  });
+  seg($('ad-sort'), [['votes', '득표순'], ['final', '최종 점수순']], sortBy, v => { sortBy = v; renderAdmin(); });
+
+  const box = $('ad-list'); box.textContent = '';
+  if (!booths.length) box.appendChild(el('div', 'sub', '등록된 가족이 없습니다. 아래 [가족 등록 · 초기화]에서 등록부를 붙여넣어 주세요.'));
+  let rank = 0, prev = null;
+  list.forEach((x, i) => {
+    const b = x.b, s = x.s, k = key(x);
+    if (k !== prev) { rank = i + 1; prev = k; }
+    const row = el('div', 'row'), hd = el('div', 'hd');
+    hd.appendChild(el('div', 'rank', String(rank)));
+    const pic = el('img', 'ph'); pic.alt = ''; setPic(pic, b); hd.appendChild(pic);
+    const t = el('div', 't');
+    t.appendChild(el('div', 'name', b.app || '(앱 이름 미등록)'));
+    t.appendChild(el('div', 'sub', (b.team || '(모둠 이름 미등록)') + ' · ' + b.no + '번 ' + (b.student || '') + (b.round ? ' · ' + b.round + '회차' : '')));
+    const tags = el('div');
+    if (!ready(b)) tags.appendChild(el('span', 'tag no', '부스 미등록'));
+    tags.appendChild(el('span', 'tag' + (voters.has(b.id) ? '' : ' no'), voters.has(b.id) ? '투표 완료' : '투표 전'));
+    t.appendChild(tags); hd.appendChild(t);
+    const c = el('div', 'cnt'); c.append(el('b', '', String(x.n)), el('span', '', '표')); hd.appendChild(c);
+    row.appendChild(hd);
+
+    if (showJudge) {
+      const sc = el('div', 'score');
+      sc.append('심사 ' + (s.judge == null ? '–' : s.judge.toFixed(1)) + (s.judges === 1 ? ' (1명만 입력)' : '') +
+        ' × 0.7 + 스티커 ' + s.sticker.toFixed(1) + ' × 0.3 = ', el('b', '', s.final == null ? '–' : s.final.toFixed(1) + '점'));
+      row.appendChild(sc);
+      const jg = el('div', 'judge');
+      ['', '① 문제 해결', '② 작동', '③ 학생 설명'].forEach(h => jg.appendChild(el('div', 'h', h)));
+      [0, 1].forEach(jn => {
+        const tot = judgeTotal(x.j, jn);
+        jg.appendChild(el('div', '', '심사위원 ' + (jn + 1) + (tot == null ? '' : ' (' + tot + ')')));
+        [0, 1, 2].forEach(it => {
+          const col = jn * 3 + it, sg = el('span', 'seg');
+          seg(sg, Object.keys(PTS[it]).map(v => [v, v + ' ' + PTS[it][v]]), x.j[col] || '', v => {
+            const a = [0, 1, 2, 3, 4, 5].map(n => x.j[n] || '');
+            a[col] = a[col] === v ? '' : v;
+            judge[b.id] = a; renderAdmin();
+            adminDo(S.set('judge', b.id, { s: a }));
+          });
+          jg.appendChild(sg);
+        });
+      });
+      row.appendChild(jg);
+    }
+    const msgs = (got[b.id] || []).filter(m => m.msg);
+    if (msgs.length) {
+      const det = el('details'); det.open = !!openMsgs[b.id];
+      det.appendChild(el('summary', '', '응원의 말 ' + msgs.length + '개'));
+      msgs.forEach(m => { const p = el('div', 'msg'); p.append(m.msg + ' ', el('i', '', '— ' + m.from)); det.appendChild(p); });
+      det.addEventListener('toggle', () => { openMsgs[b.id] = det.open; });
+      row.appendChild(det);
+    }
+    box.appendChild(row);
+  });
+}
+async function registerRoster() {
+  const msg = $('ad-roster-msg'), fams = [], seen = {};
+  for (const line of $('ad-roster').value.split('\n')) {
+    const m = line.match(/0?1[016789][-\s.)]*\d{4}[-\s.]*\d{4}/);
+    if (!m) continue;
+    const key = m[0].replace(/\D/g, '').slice(-8);
+    if (seen[key]) continue;
+    seen[key] = true;
+    fams.push({ key, student: clean(line.replace(m[0], ''), 20) });
+  }
+  if (!fams.length) return void (msg.textContent = '전화번호를 찾지 못했습니다.');
+  const per = Math.ceil(fams.length / 3);
+  if (!confirm(fams.length + '가족을 등록할까요? (' + per + '가족씩 3회차)')) return;
+  const btn = $('btn-roster'); busy(btn, true);
+  try {
+    await Promise.all(fams.map((f, i) => Promise.all([
+      S.set('families', f.key, { no: i + 1 }),
+      S.set('booths', String(i + 1), { no: i + 1, student: f.student, round: Math.floor(i / per) + 1 })
+    ])));
+    $('ad-roster').value = ''; msg.textContent = fams.length + '가족을 등록했습니다.';
+  } catch (e) { msg.textContent = '등록하지 못했습니다. Firestore 규칙을 확인해 주세요.'; }
+  busy(btn, false);
+}
+async function clearData(all) {
+  if (!confirm(all ? '모든 가족의 모둠 이름·앱 이름·사진, 투표, 심사 점수를 지울까요? (가족 등록은 남습니다)' : '모든 투표를 지울까요?')) return;
+  const msg = $('ad-roster-msg');
+  try {
+    const jobs = votes.map(v => S.del('votes', v.id));
+    if (all) booths.forEach(b => {
+      jobs.push(S.del('photos', b.id), S.del('judge', b.id), S.set('booths', b.id, { team: '', app: '', photoVer: '' }));
+      delete photos[b.id];
+    });
+    await Promise.all(jobs);
+    msg.textContent = '지웠습니다.';
+  } catch (e) { msg.textContent = '지우지 못했습니다.'; }
+}
+
+/* ---------- 이벤트 ---------- */
+async function doLogin() {
+  const l = $('in-last').value.trim(), m = $('in-mid').value.trim(), err = $('login-err');
+  err.textContent = '';
+  if (!/^\d{4}$/.test(l) || !/^\d{4}$/.test(m)) return void (err.textContent = '숫자 4자리씩 입력해 주세요.');
+  const btn = $('btn-login'); busy(btn, true);
+  try { await login(m + l); } catch (e) { err.textContent = e.code ? '연결에 문제가 있습니다. 다시 눌러 주세요.' : e.message; }
+  busy(btn, false);
+}
+$('btn-login').addEventListener('click', doLogin);
+$('in-mid').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('in-last').addEventListener('input', function () { if (this.value.length === 4) $('in-mid').focus(); });
+$('btn-to-admin').addEventListener('click', () => { $('admin-err').textContent = ''; show('adminlogin'); });
+$('btn-to-login').addEventListener('click', () => show('login'));
+$('btn-admin-login').addEventListener('click', () => {
+  if ($('in-pw').value === ADMIN_PW) { $('in-pw').value = ''; adminStart(); } else $('admin-err').textContent = '관리자 비밀번호가 맞지 않습니다.';
+});
+$('in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-admin-login').click(); });
+$('btn-admin-out').addEventListener('click', () => { stop(); adminOn = false; try { sessionStorage.removeItem('admin'); } catch (e) {} show('login'); });
+$('ad-judge').addEventListener('change', renderAdmin);
+$('btn-roster').addEventListener('click', registerRoster);
+$('btn-clear-votes').addEventListener('click', () => clearData(false));
+$('btn-clear-all').addEventListener('click', () => clearData(true));
+$('btn-logout').addEventListener('click', logout);
+$('btn-edit').addEventListener('click', () => openProfile(false));
+$('btn-pf-cancel').addEventListener('click', () => { show('main'); renderMain(); });
+$('btn-pf-save').addEventListener('click', saveProfile);
+$('btn-vote').addEventListener('click', vote);
+$('pf-file').addEventListener('change', function () {
+  const f = this.files && this.files[0], err = $('pf-err');
+  if (!f) return;
+  err.textContent = '';
+  shrink(f).then(d => { newPhoto = d; $('pf-prev').src = d; $('pf-prev').classList.remove('hide'); })
+    .catch(e => { newPhoto = null; err.textContent = e.message; });
+});
+
+/* ---------- 시작 ---------- */
+try {
+  const mock = new URLSearchParams(location.search).has('mock');
+  if (!mock && !firebaseConfig) throw new Error('Firebase 설정이 아직 들어가지 않았습니다');
+  S = mock ? mockStore() : await firestoreStore();
+  let admin = null; try { admin = sessionStorage.getItem('admin'); } catch (e) {}
+  const key = lsGet('key');
+  if (admin) adminStart();
+  else if (key) { $('in-last').value = key.slice(4); await login(key, true); }
+  else show('login');
+} catch (e) { fatal(e); }
 </script>
 </body>
 </html>
