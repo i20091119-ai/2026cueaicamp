@@ -80,6 +80,10 @@
   .judge .h { color:var(--sub); text-align:center; }
   .judge .seg { display:flex; }
   .judge .seg button { flex:1; padding:7px 0; font-size:13px; }
+  .extra { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin-top:8px; font-size:13px; }
+  .extra .seg button { padding:7px 16px; font-size:13px; }
+  .extra label { margin:0; font-weight:400; flex:1 1 220px; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .extra input { padding:7px 10px; font-size:13px; }
   .score { margin-top:8px; font-size:14px; }
   .score b { color:var(--mint-d); }
 </style>
@@ -237,7 +241,7 @@ let S = null;
 let me = null;            // 내 부스 번호(문자열)
 let booths = [], state = '준비', myVote = null, cheers = null;
 let sel = {}, dirty = false, pendingRender = false;
-let adminOn = false, votes = [], judge = {}, sortBy = 'votes', openMsgs = {};
+let adminOn = false, adminPending = false, memoHold = 0, memoTimer = null, votes = [], judge = {}, extra = {}, sortBy = 'votes', openMsgs = {};
 let unsub = [];
 const photos = {};        // 부스 번호 -> {ver, data}
 const photoWait = {};
@@ -469,7 +473,7 @@ function adminStart() {
   const r = fn => v => { fn(v); renderAdmin(); };
   unsub.push(S.watch('booths', r(v => { booths = v.sort(byNo); })));
   unsub.push(S.watch('votes', r(v => { votes = v; })));
-  unsub.push(S.watch('judge', r(v => { judge = {}; v.forEach(j => { judge[j.id] = j.s || []; }); })));
+  unsub.push(S.watch('judge', r(v => { judge = {}; extra = {}; v.forEach(j => { judge[j.id] = j.s || []; extra[j.id] = { prob: j.prob || '', memo: j.memo || [] }; }); })));
   unsub.push(S.watchDoc('config', 'main', r(v => { state = v && STATES.includes(v.state) ? v.state : '준비'; })));
   show('admin');
 }
@@ -494,6 +498,9 @@ function seg(box, items, cur, fn) {
 function adminDo(p) { $('ad-err').textContent = ''; p.catch(() => { $('ad-err').textContent = '저장하지 못했습니다. 다시 시도해 주세요.'; }); }
 function renderAdmin() {
   if (!adminOn) return;
+  if (document.activeElement && document.activeElement.classList.contains('memo')) { adminPending = true; return; }   // 메모 입력 중에는 다시 그리지 않는다
+  if (Date.now() < memoHold) { clearTimeout(memoTimer); memoTimer = setTimeout(renderAdmin, 450); return; }           // 메모 칸 사이를 옮겨 가는 중
+  adminPending = false;
   const showJudge = $('ad-judge').checked, name = {};
   booths.forEach(b => { name[b.id] = b.team || b.student || noLabel(b) || '(이름 없음)'; });
   const got = {};
@@ -567,6 +574,27 @@ function renderAdmin() {
         });
       });
       row.appendChild(jg);
+      const ex = extra[b.id] || (extra[b.id] = { prob: '', memo: [] });
+      const xr = el('div', 'extra'), ps = el('span', 'seg');
+      seg(ps, [['A', 'A'], ['B', 'B']], ex.prob, v => {
+        ex.prob = ex.prob === v ? '' : v; renderAdmin();
+        adminDo(S.set('judge', b.id, { prob: ex.prob }));
+      });
+      const pw = el('span', '', '문제 '); pw.appendChild(ps); xr.appendChild(pw);
+      [0, 1].forEach(jn => {
+        const lb = el('label', '', '메모 ' + (jn + 1)), inp = el('input', 'memo');
+        inp.type = 'text'; inp.maxLength = 100; inp.value = ex.memo[jn] || ''; inp.placeholder = '심사위원 ' + (jn + 1) + ' 메모';
+        inp.addEventListener('change', () => {
+          const cur = extra[b.id] || (extra[b.id] = { prob: '', memo: [] });
+          cur.memo = [0, 1].map(n => n === jn ? clean(inp.value, 100) : (cur.memo[n] || ''));
+          memoHold = Date.now() + 400;
+          adminDo(S.set('judge', b.id, { memo: cur.memo }));
+        });
+        inp.addEventListener('blur', () => { if (adminPending) setTimeout(renderAdmin, 0); });
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+        lb.appendChild(inp); xr.appendChild(lb);
+      });
+      row.appendChild(xr);
     }
     const msgs = (got[b.id] || []).filter(m => m.msg);
     if (msgs.length) {
