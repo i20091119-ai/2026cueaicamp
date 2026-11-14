@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고래 낙하 활동지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0E2240; --deep:#081830; --cream:#F7F3EA; --aqua:#6CCBCB; --coral:#F08A6C; --brick:#B44A33; --sun:#F6D57A; --soft:#4A5A6E; --mist:#C9DEDD; --line:#E3DCCB; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif; background:var(--cream); color:var(--navy); line-height:1.5; }
+  h1, h2, h3, .jua { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; }
+  .hide { display:none !important; }
+  button { font:inherit; font-weight:700; border:0; border-radius:14px; padding:13px 18px; background:var(--navy); color:var(--cream); cursor:pointer; }
+  button:disabled { opacity:.45; cursor:default; }
+  button.ghost { background:#fff; color:var(--navy); border:2px solid var(--line); }
+  button.small { padding:7px 12px; font-size:14px; border-radius:10px; }
+  input[type=text], input[type=number], input[type=password], textarea { width:100%; font:inherit; font-size:18px; padding:12px 14px; border:2px solid var(--line); border-radius:14px; background:#fff; color:var(--navy); }
+  input:focus, textarea:focus, button:focus-visible { outline:3px solid var(--aqua); outline-offset:1px; }
+  textarea { resize:vertical; min-height:64px; }
+  label, .lab { display:block; font-weight:700; font-size:16px; margin:16px 0 6px; }
+  .hint { color:var(--soft); font-size:14px; }
+  .err { color:var(--brick); font-size:15px; min-height:22px; margin-top:8px; font-weight:700; }
+  .ok { color:#1b7a6d; }
+
+  /* ---------- 학생 화면 ---------- */
+  .top { background:linear-gradient(180deg,var(--navy),var(--deep)); color:var(--cream); padding:18px 16px 46px; position:relative; overflow:hidden; }
+  .top svg.wave { position:absolute; left:0; bottom:-1px; width:100%; height:34px; }
+  .top .in { max-width:720px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .top h1 { font-size:28px; margin:0; flex:1; }
+  .top .who { font-size:15px; color:var(--mist); text-align:right; }
+  .top button { background:transparent; color:var(--mist); font-weight:400; text-decoration:underline; padding:4px; font-size:13px; }
+  .wrap { max-width:720px; margin:0 auto; padding:16px 16px 80px; }
+  .card { background:#fff; border-radius:22px; padding:20px; box-shadow:0 8px 24px rgba(14,34,64,.08); margin-top:14px; }
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding:4px 2px 8px; margin-top:-26px; position:relative; }
+  .tabs button { flex:none; background:#fff; color:var(--navy); border:2px solid var(--line); border-radius:40px; padding:9px 16px; font-size:15px; white-space:nowrap; }
+  .tabs button.on { background:var(--sun); border-color:var(--sun); }
+  .tabs button .dot { display:inline-block; width:9px; height:9px; border-radius:9px; background:var(--aqua); margin-left:6px; }
+  .acth { display:flex; align-items:baseline; gap:10px; }
+  .acth .no { background:var(--navy); color:var(--cream); font-size:13px; font-weight:700; padding:4px 12px; border-radius:20px; }
+  .acth h2 { font-size:30px; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chips button { background:#fff; color:var(--navy); border:2px solid var(--line); border-radius:40px; padding:9px 16px; font-size:16px; }
+  .chips button.on { background:var(--aqua); border-color:var(--aqua); }
+  .chips.c2 button.on { background:var(--coral); border-color:var(--coral); }
+  .seq { display:flex; flex-wrap:wrap; align-items:center; gap:8px; min-height:58px; padding:10px; border:2px dashed var(--line); border-radius:16px; background:var(--cream); }
+  .seq .pill { background:var(--navy); color:var(--cream); padding:8px 14px; border-radius:40px; font-weight:700; }
+  .seq .arr { color:var(--aqua); font-weight:700; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .entry { border-top:2px dashed var(--line); margin-top:18px; padding-top:6px; }
+  .entry:first-child { border-top:0; margin-top:0; padding-top:0; }
+  .save { display:flex; align-items:center; gap:12px; margin-top:18px; }
+  .save .err { margin:0; flex:1; }
+  .login { max-width:440px; margin:0 auto; padding:24px 16px; }
+  .login img { height:40px; display:block; margin:0 auto 14px; }
+  .login h1 { font-size:44px; text-align:center; margin:0; }
+  .login p { text-align:center; margin:4px 0 0; }
+  .foot { text-align:center; margin-top:26px; }
+  .foot a { color:var(--soft); font-size:13px; }
+
+  .pad { position:relative; width:100%; max-width:600px; aspect-ratio:2/1; border-radius:18px; overflow:hidden; background:#DDF2F1; touch-action:none; }
+  .pad canvas, .pad svg { position:absolute; left:0; top:0; width:100%; height:100%; }
+  .pad canvas { cursor:crosshair; }
+  .pad svg { pointer-events:none; }
+  .pal { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+  .pal button.col { width:38px; height:38px; padding:0; border-radius:38px; border:3px solid #fff; box-shadow:0 0 0 2px var(--line); }
+  .pal button.col.on { box-shadow:0 0 0 3px var(--navy); }
+  .w-card img.art { display:block; width:100%; aspect-ratio:2/1; object-fit:contain; margin-bottom:6px; animation:swim 5s ease-in-out infinite alternate; }
+  @keyframes swim { from { transform:translateY(-4px) rotate(-1.5deg); } to { transform:translateY(4px) rotate(1.5deg); } }
+
+  /* ---------- 담벼락 ---------- */
+  body.wall { background:linear-gradient(180deg,var(--navy),var(--deep)) fixed; color:var(--cream); min-height:100vh; }
+  .w-head { display:flex; align-items:center; gap:24px; padding:22px 36px 10px; }
+  .w-head h1 { font-size:54px; margin:0; line-height:1.1; }
+  .w-head .no { background:var(--sun); color:var(--navy); font-weight:700; font-size:20px; padding:6px 18px; border-radius:30px; white-space:nowrap; }
+  .w-head .cnt { margin-left:auto; text-align:right; color:var(--mist); font-size:20px; white-space:nowrap; }
+  .w-head .cnt b { font-family:"Jua",sans-serif; font-weight:400; font-size:44px; color:var(--sun); }
+  .w-tabs { display:flex; gap:10px; padding:6px 36px 14px; flex-wrap:wrap; align-items:center; }
+  .w-tabs button { background:#16305A; color:var(--mist); border-radius:40px; padding:8px 18px; font-size:17px; }
+  .w-tabs button.on { background:var(--aqua); color:var(--navy); }
+  .w-tabs .sp { flex:1; }
+  .w-tabs .url { color:var(--mist); font-size:17px; }
+  .w-tabs .url b { color:var(--cream); }
+  .w-body { padding:6px 36px 60px; }
+  .w-empty { text-align:center; color:var(--mist); font-size:28px; padding:90px 0; }
+  .w-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:18px; }
+  .w-card { background:var(--cream); color:var(--navy); border-radius:26px 26px 26px 8px; padding:20px 22px; position:relative; animation:pop .5s both; overflow-wrap:anywhere; }
+  .w-card.c1 { background:#DDF2F1; } .w-card.c2 { background:#FBE9C2; } .w-card.c3 { background:#FBDCD1; }
+  .w-card .t { font-size:24px; font-weight:700; line-height:1.4; }
+  .w-card .s { font-size:20px; color:var(--soft); margin-top:8px; line-height:1.4; }
+  .w-card .by { font-size:15px; color:var(--soft); margin-top:12px; display:flex; gap:8px; align-items:center; }
+  .w-card .by .tm { background:var(--navy); color:var(--cream); padding:2px 10px; border-radius:20px; font-weight:700; }
+  .w-card .tag { display:inline-block; font-size:15px; font-weight:700; background:var(--navy); color:var(--cream); padding:3px 12px; border-radius:20px; margin-bottom:8px; }
+  .w-card.off { opacity:.35; }
+  .w-card .hb { position:absolute; right:10px; top:10px; }
+  .w-cloud { display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; padding:10px 0 28px; }
+  .w-cloud span { font-family:"Jua",sans-serif; background:#16305A; color:var(--sun); padding:8px 24px; border-radius:60px; line-height:1.25; animation:pop .5s both; }
+  .w-cloud span small { font-family:"Noto Sans KR",sans-serif; font-size:18px; color:var(--mist); margin-left:8px; }
+  .w-bars { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:26px; }
+  .w-bar { background:#16305A; border-radius:22px; padding:18px 20px; }
+  .w-bar .n { font-family:"Jua",sans-serif; font-size:60px; color:var(--sun); line-height:1; }
+  .w-bar .l { font-size:26px; font-weight:700; margin-top:4px; }
+  .w-bar .m { height:12px; border-radius:12px; background:var(--deep); margin-top:12px; overflow:hidden; }
+  .w-bar .m i { display:block; height:100%; background:var(--aqua); border-radius:12px; transition:width .6s; }
+  .w-cols { display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  .w-cols h2 { font-size:32px; margin:0 0 12px; color:var(--sun); }
+  .w-cols .w-grid { grid-template-columns:1fr; }
+  .w-sub { font-size:22px; color:var(--mist); margin:0 0 14px; }
+  .w-admin { position:fixed; right:14px; bottom:10px; display:flex; gap:8px; align-items:center; }
+  .w-admin button { background:transparent; color:#3d587f; font-weight:400; font-size:13px; padding:4px 8px; }
+  .w-admin input { width:110px; font-size:14px; padding:6px 8px; border-radius:8px; }
+  @keyframes pop { from { opacity:0; transform:translateY(14px) scale(.96); } to { opacity:1; transform:none; } }
+  @media (max-width:900px) { .w-cols, .w-bars { grid-template-columns:1fr 1fr; } .w-head h1 { font-size:36px; } }
+</style>
+</head>
+<body>
+
+<div id="v-load" class="login"><p class="hint" id="load-msg" style="margin-top:60px">불러오는 중…</p></div>
+
+<!-- 팀 입장 -->
+<div id="v-login" class="login hide">
+  <img src="cue_logo.png" alt="진주교육대학교">
+  <h1>고래 낙하</h1>
+  <p class="hint">함께 읽기 활동지</p>
+  <div class="card">
+    <label for="in-team">우리 팀 번호</label>
+    <input id="in-team" type="number" inputmode="numeric" min="1" max="40" placeholder="예: 7">
+    <label for="in-name">팀 이름 (없으면 비워 두기)</label>
+    <input id="in-name" type="text" maxlength="12" placeholder="예: 고래 지킴이">
+    <div class="err" id="login-err"></div>
+    <button id="btn-login" style="width:100%">시작하기</button>
+  </div>
+  <div class="foot"><a href="#wall">담벼락 화면</a></div>
+</div>
+
+<!-- 활동지 -->
+<div id="v-main" class="hide">
+  <div class="top"><div class="in">
+    <h1>고래 낙하 활동지</h1>
+    <div class="who"><span id="me-label"></span><br><button id="btn-out">팀 바꾸기</button></div>
+  </div><svg class="wave" viewBox="0 0 1920 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C320 0 640 60 960 30 C1280 0 1600 60 1920 30 L1920 60 L0 60 Z" fill="#F7F3EA"/></svg></div>
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="card" id="sheet"></div>
+  </div>
+</div>
+
+<!-- 담벼락 -->
+<div id="v-wall" class="hide">
+  <div class="w-head"><span class="no" id="w-no"></span><h1 id="w-title"></h1><div class="cnt"><b id="w-cnt">0</b> 팀<br><span id="w-cnt2"></span></div></div>
+  <div class="w-tabs" id="w-tabs"></div>
+  <div class="w-body" id="w-body"></div>
+  <div class="w-admin"><input id="w-pw" class="hide" type="password" inputmode="numeric" placeholder="비밀번호" aria-label="관리 비밀번호"><button id="w-adm">관리</button></div>
+</div>
+
+<script type="module">
+/* ====== Firebase 설정 (가족 앱 부스 투표와 같은 프로젝트) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmC7FOUIECxATjvx3jyRgwz-fsfQsuNM",
+  authDomain: "aicue-c952a.firebaseapp.com",
+  projectId: "aicue-c952a",
+  storageBucket: "aicue-c952a.firebasestorage.app",
+  messagingSenderId: "929288201351",
+  appId: "1:929288201351:web:ecab6eb22cfe11fe18c422"
+};
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const COL = 'config';        // 현재 규칙이 허용하는 컬렉션. 문서 id 앞에 book_ 을 붙여 구분한다
+const PRE = 'book_';
+const ADMIN_PW = '3141';
+
+/* ====== 활동 정의 ====== */
+const PLACES = ['도시', '강', '바다', '고래 몸속'];
+const PROBLEMS = ['그물', '쓰레기', '소음', '충돌'];
+const PARTS = ['거리 센서', '컬러 센서', '포스 센서', '모터'];
+const ACTS = [
+  { id: 'feel',  no: '읽은 후',  title: '느낌 한 단어',   multi: true },
+  { id: 'trash', no: '활동지 1', title: '쓰레기의 여행',  multi: false },
+  { id: 'word',  no: '활동지 2', title: '고래에게 한마디', multi: true },
+  { id: 'q',     no: '활동지 3', title: '질문 만들기',    multi: false },
+  { id: 'idea',  no: '활동지 4', title: '아이디어 카드',  multi: false }
+];
+const FEELS = ['슬픔', '놀라움', '미안함', '따뜻함', '궁금함', '고마움'];
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function lsGet(k) { try { return JSON.parse(localStorage.getItem('book_' + k)); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem('book_' + k, JSON.stringify(v)); } catch (e) {} }
+function show(v) { ['load', 'login', 'main', 'wall'].forEach(n => $('v-' + n).classList.toggle('hide', n !== v)); document.body.classList.toggle('wall', v === 'wall'); }
+function fatal(e) {
+  console.error(e);
+  const denied = e && (e.code === 'permission-denied');
+  $('load-msg').textContent = denied ? '저장소 권한이 아직 열리지 않았습니다. 선생님께 알려 주세요. (permission-denied)' : '연결에 문제가 있습니다. 화면을 새로 고쳐 주세요. (' + (e && e.code || e && e.message || e) + ')';
+  show('load');
+}
+
+/* ---------- 저장소: Firestore (주소에 ?mock 을 붙이면 이 브라우저 안에서만 도는 연습용) ---------- */
+async function firestoreStore() {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  const f = await import(FB + 'firebase-firestore.js');
+  const db = f.getFirestore(initializeApp(firebaseConfig));
+  const row = d => Object.assign({ id: d.id }, d.data());
+  return {
+    set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
+    del: id => f.deleteDoc(f.doc(db, COL, id)),
+    watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(row)), e => fatal(e))
+  };
+}
+function mockStore() {
+  const K = 'book_mockdb';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const subs = [];
+  const fire = () => subs.slice().forEach(s => s());
+  window.addEventListener('storage', fire);
+  return {
+    set: async (id, data) => { const db = read(); db[id] = Object.assign({}, db[id], data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
+  };
+}
+
+let S = null, rows = [], me = null, cur = 'feel', wcur = 'feel', admin = false;
+const draft = {};           // 문서 id -> 입력 중인 값
+const touched = {};         // 입력 중인 문서는 서버 값으로 덮지 않는다
+
+/* ====================== 학생 화면 ====================== */
+function docId(act, n) { return PRE + 't' + me.team + '_' + act + '_' + n; }
+function mine(act) { return rows.filter(r => r.team === me.team && r.act === act).sort((a, b) => a.n - b.n); }
+function valOf(act, n) {
+  const id = docId(act, n);
+  if (!draft[id] || !touched[id]) { const r = rows.find(x => x.id === id); draft[id] = r ? Object.assign({}, r.data) : {}; }
+  return draft[id];
+}
+function filled(act, d) {
+  if (act === 'feel') return !!(d.word || '').trim();
+  if (act === 'trash') return (d.order || []).length === 4 && !!d.stop;
+  if (act === 'word') return !!((d.to || '').trim() || (d.me || '').trim());
+  if (act === 'q') return !!((d.fact || '').trim() || (d.think || '').trim());
+  if (act === 'idea') return !!(d.problem && d.part && (d.line || '').trim());
+  return false;
+}
+const NEED = { feel: '한 단어를 써 주세요.', trash: '카드 4장을 모두 놓고, 막을 수 있었던 곳을 골라 주세요.', word: '한 줄 이상 써 주세요.', q: '질문을 하나 이상 써 주세요.', idea: '문제 카드와 부품 카드를 고르고 한 줄을 써 주세요.' };
+
+function renderTabs() {
+  const box = $('tabs'); box.textContent = '';
+  ACTS.forEach(a => {
+    const b = el('button', a.id === cur ? 'on' : '', a.title);
+    if (mine(a.id).length) b.appendChild(el('span', 'dot'));
+    b.onclick = () => { cur = a.id; renderMain(); window.scrollTo(0, 0); };
+    box.appendChild(b);
+  });
+}
+function textField(d, id, key, label, max, area, ph) {
+  const w = el('div'); const l = el('label', null, label); w.appendChild(l);
+  const i = el(area ? 'textarea' : 'input'); if (!area) i.type = 'text'; i.maxLength = max; i.value = d[key] || ''; if (ph) i.placeholder = ph;
+  i.id = id + '_' + key; l.htmlFor = i.id;
+  i.oninput = () => { d[key] = i.value; touched[id] = true; };
+  w.appendChild(i); return w;
+}
+function chipField(d, id, key, label, items, cls, after) {
+  const w = el('div'); w.appendChild(el('div', 'lab', label));
+  const c = el('div', 'chips ' + (cls || ''));
+  items.forEach(t => { const b = el('button', d[key] === t ? 'on' : '', t); b.type = 'button'; b.setAttribute('aria-pressed', d[key] === t);
+    b.onclick = () => { d[key] = t; touched[id] = true; if (after) after(t); renderSheet(); }; c.appendChild(b); });
+  w.appendChild(c); return w;
+}
+const WHALE = 'M50 168 C48 96 150 52 280 58 C380 62 450 104 486 146 C500 160 516 160 528 146 L548 104 C556 86 584 92 582 114 C580 138 568 156 552 170 C572 186 588 208 584 232 C580 250 558 250 550 236 L524 196 C486 232 400 252 296 252 C164 252 52 236 50 168 Z';
+const WHALE_DECO = 'M62 196 C96 214 140 216 168 204 M250 208 C262 236 292 252 320 246 C308 234 298 222 294 206';
+const COLORS = ['#6CCBCB', '#2F6FB5', '#0E2240', '#F08A6C', '#F6D57A', '#F4A6C0', '#7BC47F', '#9B8CE0', '#FFFFFF'];
+const pen = { color: COLORS[0], size: 30 };
+function whalePad(d, id) {
+  const w = el('div'); w.appendChild(el('div', 'lab', '내 고래 색칠하기 (담벼락 바다에 붙습니다)'));
+  const pad = el('div', 'pad'), cv = el('canvas'); cv.width = 600; cv.height = 300; cv.setAttribute('aria-label', '고래 색칠 판');
+  const ctx = cv.getContext('2d'); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (d.art) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, 600, 300); im.src = d.art; }
+  pad.appendChild(cv);
+  const NS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(NS, 'svg'); sv.setAttribute('viewBox', '0 0 600 300');
+  const mask = document.createElementNS(NS, 'path'); mask.setAttribute('d', 'M0 0 H600 V300 H0 Z ' + WHALE); mask.setAttribute('fill-rule', 'evenodd'); mask.setAttribute('fill', '#DDF2F1');
+  const line = document.createElementNS(NS, 'path'); line.setAttribute('d', WHALE); line.setAttribute('fill', 'none'); line.setAttribute('stroke', '#0E2240'); line.setAttribute('stroke-width', '5');
+  const eye = document.createElementNS(NS, 'circle'); eye.setAttribute('cx', 118); eye.setAttribute('cy', 150); eye.setAttribute('r', 7); eye.setAttribute('fill', '#0E2240');
+  const deco = document.createElementNS(NS, 'path'); deco.setAttribute('d', WHALE_DECO); deco.setAttribute('fill', 'none'); deco.setAttribute('stroke', '#0E2240'); deco.setAttribute('stroke-width', '4'); deco.setAttribute('stroke-linecap', 'round');
+  sv.appendChild(mask); sv.appendChild(line); sv.appendChild(deco); sv.appendChild(eye); pad.appendChild(sv);
+  const at = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * 600 / r.width, (e.clientY - r.top) * 300 / r.height]; };
+  let last = null;
+  const save = () => {
+    const o = document.createElement('canvas'); o.width = 480; o.height = 240; const c = o.getContext('2d'); c.scale(.8, .8);
+    c.drawImage(cv, 0, 0); c.globalCompositeOperation = 'destination-in'; c.fill(new Path2D(WHALE));
+    c.globalCompositeOperation = 'source-over'; c.lineWidth = 5; c.strokeStyle = '#0E2240'; c.stroke(new Path2D(WHALE));
+    c.lineWidth = 4; c.lineCap = 'round'; c.stroke(new Path2D(WHALE_DECO)); c.fillStyle = '#0E2240'; c.beginPath(); c.arc(118, 150, 7, 0, 7); c.fill();
+    let u = o.toDataURL('image/webp', .8); if (u.indexOf('data:image/webp') !== 0) u = o.toDataURL('image/png');
+    d.art = u; touched[id] = true;
+  };
+  cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); last = at(e); ctx.strokeStyle = pen.color; ctx.lineWidth = pen.size; ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(last[0] + .1, last[1]); ctx.stroke(); };
+  cv.onpointermove = e => { if (!last) return; const p = at(e); ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); last = p; };
+  cv.onpointerup = cv.onpointercancel = () => { if (last) { last = null; save(); } };
+  w.appendChild(pad);
+  const pal = el('div', 'pal');
+  COLORS.forEach(c => { const b = el('button', 'col' + (pen.color === c ? ' on' : '')); b.type = 'button'; b.style.background = c; b.setAttribute('aria-label', '색 ' + c);
+    b.onclick = () => { pen.color = c; pal.querySelectorAll('.col').forEach(x => x.classList.toggle('on', x === b)); }; pal.appendChild(b); });
+  [['굵게', 30], ['가늘게', 10]].forEach(([t, z]) => { const b = el('button', 'ghost small', t); b.type = 'button'; b.onclick = () => { pen.size = z; }; pal.appendChild(b); });
+  const clr = el('button', 'ghost small', '모두 지우기'); clr.type = 'button'; clr.onclick = () => { ctx.clearRect(0, 0, 600, 300); delete d.art; touched[id] = true; }; pal.appendChild(clr);
+  w.appendChild(pal); return w;
+}
+function entryForm(a, n) {
+  const id = docId(a.id, n), d = valOf(a.id, n), box = el('div', 'entry');
+  if (a.multi) box.appendChild(chipField(d, id, 'who', '쓴 사람', ['학생', '어른']));
+  if (a.id === 'feel') {
+    box.appendChild(textField(d, id, 'word', '지금 내 마음 한 단어', 8, false, '예: 놀라움'));
+    const c = el('div', 'chips'); c.style.marginTop = '8px';
+    FEELS.forEach(t => { const b = el('button', '', t); b.type = 'button'; b.onclick = () => { d.word = t; touched[id] = true; renderSheet(); }; c.appendChild(b); });
+    box.appendChild(c);
+    box.appendChild(textField(d, id, 'why', '그 단어를 고른 까닭', 50, false));
+  }
+  if (a.id === 'trash') {
+    d.order = d.order || [];
+    box.appendChild(el('div', 'lab', '쓰레기가 지나간 순서대로 카드를 눌러 주세요'));
+    const seq = el('div', 'seq');
+    if (!d.order.length) seq.appendChild(el('span', 'hint', '아래 카드를 차례로 누르기'));
+    d.order.forEach((p, i) => { if (i) seq.appendChild(el('span', 'arr', '→')); seq.appendChild(el('span', 'pill', p)); });
+    box.appendChild(seq);
+    const c = el('div', 'chips'); c.style.marginTop = '10px';
+    (d.shuf || (d.shuf = PLACES.slice().sort(() => Math.random() - .5))).forEach(p => {
+      const b = el('button', '', p); b.type = 'button'; b.disabled = d.order.includes(p);
+      b.onclick = () => { d.order.push(p); touched[id] = true; renderSheet(); }; c.appendChild(b);
+    });
+    const r = el('button', 'ghost small', '다시 놓기'); r.type = 'button'; r.onclick = () => { d.order = []; touched[id] = true; renderSheet(); };
+    c.appendChild(r); box.appendChild(c);
+    box.appendChild(chipField(d, id, 'stop', '어디에서 막을 수 있었을까', PLACES, 'c2'));
+    box.appendChild(textField(d, id, 'why', '그렇게 생각한 까닭', 60, true));
+  }
+  if (a.id === 'word') {
+    box.appendChild(textField(d, id, 'to', '고래에게 한 줄', 60, true, '해변의 고래에게 하고 싶은 말'));
+    box.appendChild(textField(d, id, 'me', '내가 바꿀 수 있는 일 한 줄', 60, true, '오늘부터 할 수 있는 일'));
+    box.appendChild(whalePad(d, id));
+  }
+  if (a.id === 'q') {
+    box.appendChild(textField(d, id, 'fact', '내용 질문 (책 속에 답이 있는 질문)', 60, true));
+    box.appendChild(textField(d, id, 'think', '생각 질문 (답이 여러 개인 질문)', 60, true));
+  }
+  if (a.id === 'idea') {
+    box.appendChild(chipField(d, id, 'problem', '문제 카드', PROBLEMS, 'c2'));
+    box.appendChild(chipField(d, id, 'part', '부품 카드', PARTS));
+    box.appendChild(textField(d, id, 'line', '이 부품으로 고래를 돕는 방법 한 줄', 70, true));
+  }
+  const sv = el('div', 'save'), msg = el('div', 'err'), btn = el('button', null, rows.some(r => r.id === id) ? '고쳐서 올리기' : '담벼락에 올리기');
+  btn.onclick = async () => {
+    if (!filled(a.id, d)) { msg.className = 'err'; msg.textContent = NEED[a.id]; return; }
+    btn.disabled = true; msg.className = 'err ok'; msg.textContent = '올리는 중…';
+    const data = Object.assign({}, d); delete data.shuf;
+    try { await S.set(id, { team: me.team, name: me.name || '', act: a.id, n, data, ts: Date.now() }); touched[id] = false; msg.textContent = '올렸습니다.'; }
+    catch (e) { console.error(e); msg.className = 'err'; msg.textContent = '올리지 못했습니다. 다시 눌러 주세요.'; }
+    btn.disabled = false;
+  };
+  sv.appendChild(msg); sv.appendChild(btn); box.appendChild(sv);
+  return box;
+}
+let extra = {};             // 활동별로 화면에 펼친 칸 수
+function renderSheet() {
+  const a = ACTS.find(x => x.id === cur), box = $('sheet');
+  const keep = document.activeElement && document.activeElement.id, pos = keep && document.activeElement.selectionStart;
+  box.textContent = '';
+  const h = el('div', 'acth'); h.appendChild(el('span', 'no', a.no)); h.appendChild(el('h2', null, a.title)); box.appendChild(h);
+  const saved = mine(a.id), maxN = saved.length ? saved[saved.length - 1].n : 0;
+  const count = a.multi ? Math.max(maxN, extra[a.id] || 1, 1) : 1;
+  const list = el('div'); list.style.marginTop = '8px';
+  for (let n = 1; n <= count; n++) list.appendChild(entryForm(a, n));
+  box.appendChild(list);
+  if (a.multi && count < 6) {
+    const add = el('button', 'ghost', '한 사람 더 쓰기'); add.style.marginTop = '16px';
+    add.onclick = () => { extra[a.id] = count + 1; renderSheet(); }; box.appendChild(add);
+  }
+  if (keep && $(keep)) { $(keep).focus(); try { $(keep).setSelectionRange(pos, pos); } catch (e) {} }
+}
+function renderMain() { $('me-label').textContent = me.team + '팀' + (me.name ? ' · ' + me.name : ''); renderTabs(); renderSheet(); }
+function doLogin() {
+  const t = parseInt($('in-team').value, 10);
+  if (!(t >= 1 && t <= 40)) { $('login-err').textContent = '팀 번호를 숫자로 넣어 주세요.'; return; }
+  me = { team: t, name: $('in-name').value.trim().slice(0, 12) }; lsSet('me', me); show('main'); renderMain();
+}
+
+/* ====================== 담벼락 ====================== */
+function wrows(act) { return rows.filter(r => r.act === act && (admin || !r.hidden)).sort((a, b) => (a.ts || 0) - (b.ts || 0)); }
+function byLine(r) {
+  const b = el('div', 'by'); b.appendChild(el('span', 'tm', r.team + '팀'));
+  const t = [r.name, r.data && r.data.who].filter(Boolean).join(' · '); if (t) b.appendChild(el('span', null, t)); return b;
+}
+function wcard(r, i, parts) {
+  const c = el('div', 'w-card c' + (i % 3 + 1) + (r.hidden ? ' off' : ''));
+  if (r.data && r.data.art && /^data:image\/(png|webp);base64,/.test(r.data.art)) { const im = el('img', 'art'); im.src = r.data.art; im.alt = r.team + '팀이 색칠한 고래'; c.appendChild(im); }
+  parts.forEach(p => { if (p && p[1]) c.appendChild(el('div', p[0], p[1])); });
+  c.appendChild(byLine(r));
+  if (admin) { const h = el('button', 'small hb', r.hidden ? '보이기' : '숨기기'); h.onclick = () => S.set(r.id, { hidden: !r.hidden }); c.appendChild(h); }
+  return c;
+}
+function grid(list, fn) { const g = el('div', 'w-grid'); list.forEach((r, i) => g.appendChild(fn(r, i))); return g; }
+function renderWall() {
+  const a = ACTS.find(x => x.id === wcur), list = wrows(a.id), body = $('w-body');
+  $('w-no').textContent = a.no; $('w-title').textContent = a.title;
+  $('w-cnt').textContent = new Set(list.map(r => r.team)).size; $('w-cnt2').textContent = '글 ' + list.length + '개';
+  const tabs = $('w-tabs'); tabs.textContent = '';
+  ACTS.forEach(x => { const b = el('button', x.id === wcur ? 'on' : '', x.title); b.onclick = () => { wcur = x.id; renderWall(); }; tabs.appendChild(b); });
+  tabs.appendChild(el('span', 'sp'));
+  const u = el('span', 'url', '활동지 주소  '); u.appendChild(el('b', null, (location.host + location.pathname).replace(/index\.html$/, ''))); tabs.appendChild(u);
+  body.textContent = '';
+  if (!list.length) { body.appendChild(el('div', 'w-empty', '아직 올라온 글이 없습니다')); return; }
+  if (a.id === 'feel') {
+    const cnt = {}; list.forEach(r => { const w = (r.data.word || '').trim(); if (w) cnt[w] = (cnt[w] || 0) + 1; });
+    const cloud = el('div', 'w-cloud');
+    Object.entries(cnt).sort((x, y) => y[1] - x[1]).forEach(([w, n]) => { const s = el('span', null, w); s.style.fontSize = Math.min(44 + (n - 1) * 16, 110) + 'px'; if (n > 1) s.appendChild(el('small', null, n)); cloud.appendChild(s); });
+    body.appendChild(cloud);
+    body.appendChild(grid(list.filter(r => (r.data.why || '').trim()), (r, i) => wcard(r, i, [['tag', r.data.word], ['t', r.data.why]])));
+  }
+  if (a.id === 'trash') {
+    const cnt = {}; list.forEach(r => { cnt[r.data.stop] = (cnt[r.data.stop] || 0) + 1; });
+    const max = Math.max(1, ...Object.values(cnt));
+    body.appendChild(el('p', 'w-sub', '어디에서 막을 수 있었을까'));
+    const bars = el('div', 'w-bars');
+    PLACES.forEach(p => { const b = el('div', 'w-bar'); b.appendChild(el('div', 'n', cnt[p] || 0)); b.appendChild(el('div', 'l', p)); const m = el('div', 'm'), i = el('i'); i.style.width = ((cnt[p] || 0) / max * 100) + '%'; m.appendChild(i); b.appendChild(m); bars.appendChild(b); });
+    body.appendChild(bars);
+    body.appendChild(grid(list.filter(r => (r.data.why || '').trim()), (r, i) => wcard(r, i, [['tag', r.data.stop], ['t', r.data.why]])));
+  }
+  if (a.id === 'word') body.appendChild(grid(list, (r, i) => wcard(r, i, [['t', r.data.to || ''], ['s', r.data.me ? '나는 ' + r.data.me : '']])));
+  if (a.id === 'q') {
+    const cols = el('div', 'w-cols');
+    [['fact', '내용 질문'], ['think', '생각 질문']].forEach(([k, t]) => { const c = el('div'); c.appendChild(el('h2', null, t));
+      c.appendChild(grid(list.filter(r => (r.data[k] || '').trim()), (r, i) => wcard(r, i, [['t', r.data[k]]]))); cols.appendChild(c); });
+    body.appendChild(cols);
+  }
+  if (a.id === 'idea') body.appendChild(grid(list, (r, i) => wcard(r, i, [['tag', r.data.problem + ' × ' + r.data.part], ['t', r.data.line]])));
+}
+
+/* ====================== 시작 ====================== */
+function route() {
+  if (location.hash === '#wall') { show('wall'); renderWall(); }
+  else if (me) { show('main'); renderMain(); }
+  else show('login');
+}
+$('btn-login').onclick = doLogin;
+$('in-name').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('btn-out').onclick = () => { me = null; lsSet('me', null); show('login'); };
+$('w-adm').onclick = () => { if (admin) { admin = false; $('w-adm').textContent = '관리'; renderWall(); } else { $('w-pw').classList.remove('hide'); $('w-pw').focus(); } };
+$('w-pw').addEventListener('keydown', e => { if (e.key !== 'Enter') return; if ($('w-pw').value === ADMIN_PW) { admin = true; $('w-adm').textContent = '관리 끝'; renderWall(); } $('w-pw').value = ''; $('w-pw').classList.add('hide'); });
+window.addEventListener('keydown', e => {
+  if (location.hash !== '#wall' || e.target.tagName === 'INPUT') return;
+  const i = ACTS.findIndex(x => x.id === wcur);
+  if (e.key === 'ArrowRight' && i < ACTS.length - 1) { wcur = ACTS[i + 1].id; renderWall(); }
+  if (e.key === 'ArrowLeft' && i > 0) { wcur = ACTS[i - 1].id; renderWall(); }
+});
+window.addEventListener('hashchange', route);
+try {
+  const mock = new URLSearchParams(location.search).has('mock');
+  S = mock ? mockStore() : await firestoreStore();
+  me = lsGet('me');
+  let first = true;
+  S.watch(list => {
+    rows = list.filter(r => r.id.indexOf(PRE) === 0 && r.data);
+    if (first) { first = false; route(); return; }
+    if (location.hash === '#wall') renderWall();
+    else if (me) { renderTabs(); if (!Object.values(touched).some(Boolean)) renderSheet(); }
+  });
+} catch (e) { fatal(e); }
+</script>
+</body>
+</html>

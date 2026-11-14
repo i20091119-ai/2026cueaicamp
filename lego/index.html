@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고래 낙하 심사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0E2240; --deep:#081830; --cream:#F7F3EA; --aqua:#6CCBCB; --coral:#F08A6C; --brick:#B44A33; --sun:#F6D57A; --soft:#4A5A6E; --mist:#C9DEDD; --line:#E3DCCB; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif; background:var(--cream); color:var(--navy); line-height:1.5; }
+  h1, h2, h3, .jua { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; margin:0; }
+  .hide { display:none !important; }
+  button { font:inherit; font-weight:700; border:0; border-radius:14px; padding:12px 16px; background:var(--navy); color:var(--cream); cursor:pointer; }
+  button.ghost { background:#fff; color:var(--navy); border:2px solid var(--line); }
+  button.small { padding:6px 12px; font-size:14px; border-radius:10px; }
+  input[type=text], input[type=password] { font:inherit; font-size:18px; padding:11px 14px; border:2px solid var(--line); border-radius:14px; background:#fff; color:var(--navy); width:100%; }
+  input:focus, button:focus-visible { outline:3px solid var(--aqua); outline-offset:1px; }
+  .hint { color:var(--soft); font-size:14px; }
+  .err { color:var(--brick); font-weight:700; min-height:22px; margin-top:8px; }
+  .top { background:linear-gradient(180deg,var(--navy),var(--deep)); color:var(--cream); padding:16px; }
+  .top .in { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .top h1 { font-size:28px; flex:1; white-space:nowrap; }
+  .seg { display:flex; gap:6px; }
+  .seg button { background:#16305A; color:var(--mist); border-radius:40px; padding:9px 18px; }
+  .seg button.on { background:var(--sun); color:var(--navy); }
+  .wrap { max-width:1100px; margin:0 auto; padding:16px 16px 80px; }
+  .card { background:#fff; border-radius:22px; padding:18px 20px; box-shadow:0 8px 24px rgba(14,34,64,.08); margin-top:14px; }
+  .login { max-width:400px; margin:60px auto; padding:0 16px; text-align:center; }
+  .login h1 { font-size:40px; }
+  .teams { display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; }
+  .teams button { background:#fff; color:var(--navy); border:2px solid var(--line); padding:10px 0; font-size:18px; position:relative; }
+  .teams button.on { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .teams button.done { border-color:var(--aqua); background:#DDF2F1; }
+  .teams button.on.done { background:var(--navy); }
+  .teams button small { display:block; font-size:11px; font-weight:400; color:var(--soft); }
+  .teams button.on small { color:var(--mist); }
+  .th { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .th h2 { font-size:34px; }
+  .th .sum { margin-left:auto; font-size:16px; color:var(--soft); }
+  .th .sum b { font-family:"Jua",sans-serif; font-weight:400; font-size:34px; color:var(--brick); }
+  .item { border-top:2px dashed var(--line); padding:14px 0 6px; margin-top:12px; }
+  .item h3 { font-size:22px; }
+  .item .q { color:var(--soft); font-size:15px; margin-top:2px; }
+  .lv { display:grid; gap:8px; margin-top:10px; }
+  .lv.m { grid-template-columns:repeat(4,1fr); }
+  .lv.p { grid-template-columns:repeat(5,1fr); }
+  .lv button { background:#fff; color:var(--navy); border:2px solid var(--line); text-align:left; padding:10px 12px; display:flex; flex-direction:column; gap:2px; min-height:74px; }
+  .lv button b { font-family:"Jua",sans-serif; font-weight:400; font-size:24px; line-height:1.1; }
+  .lv button span { font-size:13px; font-weight:400; color:var(--soft); line-height:1.35; }
+  .lv button.on { background:var(--sun); border-color:var(--sun); }
+  .lv button.on span { color:var(--navy); }
+  .saved { font-size:13px; color:#1b7a6d; font-weight:700; margin-left:8px; }
+  .who { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .who input { max-width:220px; }
+  table { border-collapse:collapse; width:100%; font-size:16px; }
+  th, td { padding:9px 8px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; }
+  th { background:#DDF2F1; font-size:14px; }
+  td.l, th.l { text-align:left; white-space:normal; }
+  td.tot { font-family:"Jua",sans-serif; font-size:22px; color:var(--brick); }
+  td.rk { font-family:"Jua",sans-serif; font-size:20px; }
+  tr.top3 td { background:#FBF3DC; }
+  td.na { color:#b9b3a4; }
+  .scroll { overflow-x:auto; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .bar .sp { flex:1; }
+  @media (max-width:700px) { .lv.m { grid-template-columns:1fr 1fr; } .lv.p { grid-template-columns:repeat(5,1fr); } .lv.p button span { display:none; } }
+</style>
+</head>
+<body>
+
+<div id="v-load" class="login"><p class="hint" id="load-msg">불러오는 중…</p></div>
+
+<div id="v-login" class="login hide">
+  <h1>고래 낙하 심사</h1>
+  <p class="hint">심사자·판정자 전용</p>
+  <div class="card">
+    <input id="in-pw" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호" aria-label="비밀번호">
+    <div class="err" id="login-err"></div>
+    <button id="btn-login" style="width:100%">들어가기</button>
+  </div>
+</div>
+
+<div id="v-main" class="hide">
+  <div class="top"><div class="in">
+    <h1>고래 낙하 심사</h1>
+    <div class="seg" id="mode"></div>
+  </div></div>
+  <div class="wrap" id="body"></div>
+</div>
+
+<script type="module">
+/* ====== Firebase 설정 (가족 앱 부스 투표와 같은 프로젝트) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmC7FOUIECxATjvx3jyRgwz-fsfQsuNM",
+  authDomain: "aicue-c952a.firebaseapp.com",
+  projectId: "aicue-c952a",
+  storageBucket: "aicue-c952a.firebasestorage.app",
+  messagingSenderId: "929288201351",
+  appId: "1:929288201351:web:ecab6eb22cfe11fe18c422"
+};
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const COL = 'config';        // 현재 규칙이 허용하는 컬렉션. 문서 id 앞에 lego_ 를 붙여 구분한다
+const PRE = 'lego_', BOOK = 'book_';
+const ADMIN_PW = '3141';
+const TEAMS = 25;
+
+/* ====== 심사 기준 ====== */
+const MISSIONS = [
+  { k: 'm1', t: '① 바다 쓰레기', lv: ['블록 3개 모두 수거 구역 선 안 (선에 걸치면 불인정)', '블록 1~2개 선 안', '출발했으나 선 안 블록 0개'] },
+  { k: 'm2', t: '② 어업 그물',   lv: ['그물이 고래 몸에서 완전히 떨어져 바닥에 놓임', '그물이 움직였으나 고래 몸에 일부 걸침', '출발했으나 그물 움직임 없음 · 고래 넘어짐'] },
+  { k: 'm3', t: '③ 선박 충돌',   lv: ['앞부분이 노란 경고 구역 안에서 멈추고 소리나 빛으로 경고', '경고 구역 안에서 멈췄지만 경고 없음', '출발했으나 구역 밖에서 멈춤 · 고래에 닿음'] },
+  { k: 'm4', t: '④ 고래 낙하',   lv: ['위에서 볼 때 고래 몸 전체가 낙하 구역 선 안', '고래 일부만 낙하 구역 안', '출발했으나 심해에 닿지 못함 · 판 밖으로 나감'] }
+];
+const M_PTS = [[6, '성공'], [4, '부분 성공'], [2, '도전'], [0, '미도전']];
+const PROF = [
+  { k: 'q1', t: '① 문제 이해', q: '이 고래는 왜 낙하하지 못했나', lv: { 4: '원인과 그 원인이 생긴 까닭까지 설명', 2: '원인만 말함', 0: '설명 못 함' } },
+  { k: 'q2', t: '② 해결 설계', q: '이 부품을 왜 여기에 썼나 (손으로 작동 시범)', lv: { 4: '부품을 고른 이유를 문제와 연결, 작동 보여 줌', 2: '작동은 보여 주나 이유 설명 못 함', 0: '작동·설명 모두 없음' } },
+  { k: 'q3', t: '③ 개선 과정', q: '처음과 무엇이 달라졌나', lv: { 4: '실패 원인과 고친 내용을 구체적으로 설명', 2: '고쳤다고만 말함', 0: '고친 적 없음 · 모름' } }
+];
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function show(v) { ['load', 'login', 'main'].forEach(n => $('v-' + n).classList.toggle('hide', n !== v)); }
+function fatal(e) { console.error(e); $('load-msg').textContent = '연결에 문제가 있습니다. 화면을 새로 고쳐 주세요. (' + (e && e.code || e && e.message || e) + ')'; show('load'); }
+
+async function firestoreStore() {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  const f = await import(FB + 'firebase-firestore.js');
+  const db = f.getFirestore(initializeApp(firebaseConfig));
+  return {
+    set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
+    watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
+  };
+}
+function mockStore() {
+  const K = 'book_mockdb';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const subs = []; const fire = () => subs.slice().forEach(s => s());
+  const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) ? merge(o[k] || {}, b[k]) : b[k]; return o; };
+  window.addEventListener('storage', fire);
+  return {
+    set: async (id, data) => { const db = read(); db[id] = merge(db[id] || {}, data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
+  };
+}
+
+let S = null, data = {}, names = {}, mode = 'mission', team = 1, judge = 'A', judgeName = '', flash = '';
+try { judge = sessionStorage.getItem('lego_j') || 'A'; judgeName = sessionStorage.getItem('lego_jn') || ''; } catch (e) {}
+
+/* ---------- 점수 계산 ---------- */
+const rec = t => data[t] || {};
+function mSum(t) { const m = rec(t).m || {}; return MISSIONS.reduce((s, x) => s + (m[x.k] || 0), 0); }
+function mTried(t) { const m = rec(t).m || {}; return MISSIONS.some(x => m[x.k] != null); }
+function pOf(t, j) { const p = (rec(t).p || {})[j]; if (!p) return null; if (PROF.some(x => p[x.k] == null)) return null; return PROF.reduce((s, x) => s + p[x.k], 0); }
+function pAvg(t) { const v = ['A', 'B'].map(j => pOf(t, j)).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+function q1Avg(t) { const v = ['A', 'B'].filter(j => pOf(t, j) != null).map(j => rec(t).p[j].q1); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
+const fmt = n => n == null ? '–' : (Math.round(n * 10) / 10).toString();
+function ranking() {
+  const list = []; for (let t = 1; t <= TEAMS; t++) { const p = pAvg(t); list.push({ t, m: mSum(t), p, tot: mSum(t) + (p || 0), q1: q1Avg(t) }); }
+  list.sort((a, b) => b.tot - a.tot || b.m - a.m || b.q1 - a.q1 || a.t - b.t);
+  list.forEach((r, i) => { const prev = list[i - 1]; r.rank = prev && prev.tot === r.tot && prev.m === r.m && prev.q1 === r.q1 ? prev.rank : i + 1; });
+  return list;
+}
+
+/* ---------- 화면 ---------- */
+function teamPicker(doneFn, subFn) {
+  const box = el('div', 'teams');
+  for (let t = 1; t <= TEAMS; t++) {
+    const b = el('button', (t === team ? 'on' : '') + (doneFn(t) ? ' done' : ''), String(t)); b.appendChild(el('small', null, subFn(t)));
+    b.setAttribute('aria-label', t + '팀'); b.onclick = () => { team = t; flash = ''; render(); }; box.appendChild(b);
+  }
+  return box;
+}
+function teamHead(sumLabel, sumVal, max) {
+  const h = el('div', 'th'); h.appendChild(el('h2', null, team + '팀')); if (names[team]) h.appendChild(el('span', 'hint', names[team]));
+  if (flash) h.appendChild(el('span', 'saved', flash));
+  const s = el('div', 'sum', sumLabel + ' '); s.appendChild(el('b', null, sumVal)); s.appendChild(document.createTextNode(' / ' + max)); h.appendChild(s); return h;
+}
+async function save(patch, msg) {
+  flash = '저장 중…'; render();
+  try { await S.set(PRE + 't' + team, Object.assign({ team, ts: Date.now() }, patch)); flash = msg || '저장됨'; }
+  catch (e) { console.error(e); flash = '저장 실패 — 다시 눌러 주세요'; }
+  render();
+}
+function viewMission(body) {
+  const c1 = el('div', 'card'); c1.appendChild(el('div', 'hint', '팀 번호를 고르고 도전 결과를 누르면 바로 저장됩니다. 초록색은 판정이 하나 이상 들어간 팀, 숫자는 미션 합계입니다.'));
+  const tp = teamPicker(mTried, t => mTried(t) ? mSum(t) + '점' : ' '); tp.style.marginTop = '10px'; c1.appendChild(tp); body.appendChild(c1);
+  const c = el('div', 'card'); c.appendChild(teamHead('미션 합계', mSum(team), 24));
+  c.appendChild(el('div', 'hint', '미션별 가장 좋은 결과를 인정합니다. 더 낮은 결과를 눌러도 점수는 내려가지 않습니다. 잘못 눌렀으면 「고치기」로 지우고 다시 누르세요.'));
+  const m = rec(team).m || {};
+  MISSIONS.forEach(x => {
+    const it = el('div', 'item'), hd = el('div', 'th'); hd.appendChild(el('h3', null, x.t));
+    if (m[x.k] != null) { const fx = el('button', 'ghost small', '고치기'); fx.style.marginLeft = 'auto'; fx.onclick = () => save({ m: { [x.k]: null } }, x.t + ' 지움'); hd.appendChild(fx); }
+    it.appendChild(hd);
+    const lv = el('div', 'lv m');
+    M_PTS.forEach(([pt, name], i) => {
+      const b = el('button', m[x.k] === pt ? 'on' : ''); b.appendChild(el('b', null, pt + '점 · ' + name)); b.appendChild(el('span', null, i < 3 ? x.lv[i] : '도전하지 않음'));
+      b.setAttribute('aria-pressed', m[x.k] === pt);
+      b.onclick = () => { if (m[x.k] != null && pt <= m[x.k]) { flash = '이미 ' + m[x.k] + '점 — 더 좋은 결과만 반영'; render(); return; } save({ m: { [x.k]: pt } }, x.t + ' ' + pt + '점 저장'); };
+      lv.appendChild(b);
+    });
+    it.appendChild(lv); c.appendChild(it);
+  });
+  body.appendChild(c);
+}
+function viewProf(body) {
+  const c0 = el('div', 'card'), w = el('div', 'who'); w.appendChild(el('b', null, '심사위원'));
+  const sg = el('div', 'seg'); ['A', 'B'].forEach(j => { const b = el('button', j === judge ? 'on' : '', j); b.style.background = j === judge ? '' : '#E9E3D3'; b.style.color = 'var(--navy)';
+    b.onclick = () => { judge = j; try { sessionStorage.setItem('lego_j', j); } catch (e) {} flash = ''; render(); }; sg.appendChild(b); });
+  w.appendChild(sg);
+  const nm = el('input'); nm.type = 'text'; nm.maxLength = 10; nm.placeholder = '성함'; nm.value = judgeName; nm.setAttribute('aria-label', '심사위원 성함');
+  nm.oninput = () => { judgeName = nm.value; try { sessionStorage.setItem('lego_jn', judgeName); } catch (e) {} }; w.appendChild(nm);
+  w.appendChild(el('span', 'hint', '학생이 답합니다. 보호자가 대신 답하면 한 단계 낮춥니다.')); c0.appendChild(w);
+  const tp = teamPicker(t => pOf(t, judge) != null, t => pOf(t, judge) != null ? pOf(t, judge) + '점' : (pOf(t, judge === 'A' ? 'B' : 'A') != null ? '다른 분' : ' ')); tp.style.marginTop = '12px'; c0.appendChild(tp); body.appendChild(c0);
+  const p = ((rec(team).p || {})[judge]) || {};
+  const sum = PROF.reduce((s, x) => s + (p[x.k] || 0), 0);
+  const c = el('div', 'card'); c.appendChild(teamHead('심사위원 ' + judge + ' 합계', sum, 12));
+  PROF.forEach(x => {
+    const it = el('div', 'item'); it.appendChild(el('h3', null, x.t)); it.appendChild(el('div', 'q', '질문: ' + x.q));
+    const lv = el('div', 'lv p');
+    [4, 3, 2, 1, 0].forEach(pt => { const b = el('button', p[x.k] === pt ? 'on' : ''); b.appendChild(el('b', null, pt + '점')); b.appendChild(el('span', null, x.lv[pt] || '사이'));
+      b.setAttribute('aria-pressed', p[x.k] === pt);
+      b.onclick = () => save({ p: { [judge]: { [x.k]: pt, by: judgeName } } }, x.t + ' ' + pt + '점 저장'); lv.appendChild(b); });
+    it.appendChild(lv); c.appendChild(it);
+  });
+  body.appendChild(c);
+}
+function csv() {
+  const head = ['순위', '팀', '팀 이름', '쓰레기', '그물', '선박', '낙하', '미션 합(24)', '심사 A', '심사 B', '교수 심사(12)', '총점(36)'];
+  const lines = ranking().map(r => { const m = rec(r.t).m || {}; return [r.rank, r.t, names[r.t] || '', ...MISSIONS.map(x => m[x.k] == null ? '' : m[x.k]), r.m, fmt(pOf(r.t, 'A')), fmt(pOf(r.t, 'B')), fmt(r.p), fmt(r.tot)]; });
+  const text = '﻿' + [head].concat(lines).map(l => l.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = '고래낙하_심사결과.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+function viewResult(body) {
+  const c = el('div', 'card'), list = ranking();
+  const bar = el('div', 'bar');
+  let mt = 0, pt = 0; for (let t = 1; t <= TEAMS; t++) { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; }
+  bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + TEAMS + '팀 · 교수 심사 ' + pt + ' / ' + TEAMS + '팀'));
+  bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
+  c.appendChild(el('div', 'hint', '총점 = 미션 합(24) + 교수 심사(12). 교수 심사는 두 분이 모두 채점한 팀은 평균. 동점은 미션 합 → ① 문제 이해 순.'));
+  const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
+  const hr = el('tr'); ['순위', '팀', '팀 이름', '쓰레기', '그물', '선박', '낙하', '미션 합', '심사 A', '심사 B', '교수 심사', '총점'].forEach((h, i) => hr.appendChild(el('th', i === 2 ? 'l' : '', h))); tb.appendChild(hr);
+  list.forEach(r => {
+    const m = rec(r.t).m || {}, tr = el('tr', r.rank <= 3 && r.tot > 0 ? 'top3' : '');
+    tr.appendChild(el('td', 'rk', r.tot > 0 ? r.rank : '–')); tr.appendChild(el('td', null, r.t)); tr.appendChild(el('td', 'l', names[r.t] || ''));
+    MISSIONS.forEach(x => tr.appendChild(el('td', m[x.k] == null ? 'na' : '', m[x.k] == null ? '–' : m[x.k])));
+    tr.appendChild(el('td', null, r.m)); ['A', 'B'].forEach(j => { const v = pOf(r.t, j); tr.appendChild(el('td', v == null ? 'na' : '', fmt(v))); });
+    tr.appendChild(el('td', r.p == null ? 'na' : '', fmt(r.p))); tr.appendChild(el('td', 'tot', fmt(r.tot))); tb.appendChild(tr);
+  });
+  sc.appendChild(tb); c.appendChild(sc); body.appendChild(c);
+}
+function render() {
+  const seg = $('mode'); seg.textContent = '';
+  [['mission', '미션 판정'], ['prof', '교수 심사'], ['result', '결과']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('lego_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
+  const body = $('body'), y = window.scrollY; body.textContent = '';
+  if (mode === 'mission') viewMission(body); else if (mode === 'prof') viewProf(body); else viewResult(body);
+  window.scrollTo(0, y);
+}
+
+function enter() { try { sessionStorage.setItem('lego_ok', '1'); mode = sessionStorage.getItem('lego_mode') || 'mission'; } catch (e) {} show('main'); render(); }
+$('btn-login').onclick = () => { if ($('in-pw').value === ADMIN_PW) enter(); else $('login-err').textContent = '비밀번호가 다릅니다.'; };
+$('in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-login').click(); });
+try {
+  S = new URLSearchParams(location.search).has('mock') ? mockStore() : await firestoreStore();
+  let first = true, ok = false; try { ok = sessionStorage.getItem('lego_ok') === '1'; } catch (e) {}
+  S.watch(list => {
+    data = {}; names = {};
+    list.forEach(r => { if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; else if (r.id.indexOf(BOOK) === 0 && r.team && r.name) names[r.team] = r.name; });
+    if (first) { first = false; if (ok) enter(); else show('login'); return; }
+    if (!$('v-main').classList.contains('hide') && document.activeElement.tagName !== 'INPUT') render();
+  });
+} catch (e) { fatal(e); }
+</script>
+</body>
+</html>
