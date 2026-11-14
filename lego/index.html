@@ -249,7 +249,7 @@ function viewResult(body) {
   let mt = 0, pt = 0; for (let t = 1; t <= TEAMS; t++) { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; }
   bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + TEAMS + '팀 · 교수 심사 ' + pt + ' / ' + TEAMS + '팀'));
   bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
-  c.appendChild(el('div', 'hint', '총점 = 미션 합(24) + 교수 심사(12). 교수 심사는 두 분이 모두 채점한 팀은 평균. 동점은 미션 합 → ① 문제 이해 순.'));
+  c.appendChild(el('div', 'hint', '총점 = 미션 합(24) + 교수 심사(12). 교수 심사는 팀별 담당 심사위원 1명의 점수(채점지에서 옮겨 입력). 동점은 미션 합 → ① 문제 이해 순.'));
   const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
   const hr = el('tr'); ['순위', '팀', '팀 이름', '쓰레기', '그물', '선박', '낙하', '미션 합', '심사 A', '심사 B', '교수 심사', '총점'].forEach((h, i) => hr.appendChild(el('th', i === 2 ? 'l' : '', h))); tb.appendChild(hr);
   list.forEach(r => {
