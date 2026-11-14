@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>가족 앱 부스 투표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
 <style>
   :root { --mint:#12b886; --mint-d:#0b8f68; --mint-l:#e6f8f1; --ink:#1c2b27; --sub:#62736d; --line:#d7e5df; --bg:#f4f9f7; --warn:#e8590c; }
   * { box-sizing:border-box; }
@@ -86,6 +89,50 @@
   .extra input { padding:7px 10px; font-size:13px; }
   .score { margin-top:8px; font-size:14px; }
   .score b { color:var(--mint-d); }
+
+  /* ===== 귀여운 테마 ===== */
+  :root { --mint:#20c997; --mint-d:#0c9a72; --mint-l:#e3fbf2; --ink:#33403c; --sub:#6f807a; --line:#cfeee2; --bg:#f3fcf8; --pink:#ff8fab; --pink-l:#fff0f4; --yellow:#ffd95a; --cute:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  body { font-family:"Gowun Dodum",-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    background-color:var(--bg);
+    background-image:radial-gradient(circle at 12px 12px, rgba(32,201,151,.13) 2.5px, transparent 3px), linear-gradient(180deg,#e9fbf4 0%,#fffdf3 55%,#fff1f5 100%);
+    background-size:28px 28px, 100% 100%; background-attachment:fixed; min-height:100vh; }
+  h1 { font-family:var(--cute); font-weight:400; font-size:27px; letter-spacing:.3px; color:var(--mint-d); }
+  h1::before { content:"🎈 "; }
+  h2 { font-family:var(--cute); font-weight:400; font-size:20px; color:var(--ink); display:inline-block; background:#fff; border:2px solid var(--line); border-radius:999px; padding:4px 16px; margin:26px 0 12px; }
+  h2::before { content:"🚩 "; }
+  .card, .row, .stat, .cheer { border:2px solid var(--line); border-radius:22px; box-shadow:0 6px 0 rgba(32,201,151,.10); }
+  label { font-family:var(--cute); font-weight:400; font-size:16px; }
+  input[type=text], input[type=password], input[type=tel], textarea { border:2px solid var(--line); border-radius:14px; background:#fbfffd; }
+  input:focus, textarea:focus { outline:3px solid rgba(255,143,171,.45); border-color:var(--pink); }
+  button { font-family:var(--cute); font-weight:400; font-size:17px; border-radius:999px; box-shadow:0 4px 0 var(--mint-d); transition:transform .08s, box-shadow .08s; }
+  button:active { transform:translateY(3px); box-shadow:0 1px 0 var(--mint-d); }
+  button:disabled { box-shadow:0 4px 0 #a3b3ad; transform:none; }
+  button.ghost { border:2px solid var(--mint); box-shadow:0 3px 0 var(--line); }
+  button.small { font-size:14px; }
+  button.link, .seg button { box-shadow:none; transform:none; }
+  button.link { font-family:inherit; }
+  .seg { border:2px solid var(--mint); border-radius:999px; }
+  .seg button { font-size:14px; }
+  .banner { border:2px dashed #9be5cc; border-radius:18px; font-size:16px; }
+  .banner::before { content:"💌 "; }
+  .banner.wait { border-color:#f5d67a; background:#fffbe8; } .banner.wait::before { content:"⏳ "; }
+  .banner.end { border-color:#d5dedb; } .banner.end::before { content:"🎉 "; }
+  .me img, .ph { border-radius:18px; border:3px solid #fff; box-shadow:0 0 0 2px var(--line); }
+  .name, .booth .app { font-family:var(--cute); font-weight:400; font-size:18px; }
+  .grid { gap:14px; }
+  .booth { border:3px solid #fff; border-radius:22px; box-shadow:0 0 0 2px var(--line), 0 7px 0 rgba(32,201,151,.10); transition:transform .12s; }
+  .booth.can:active { transform:scale(.97); }
+  .booth.on { border-color:var(--pink); box-shadow:0 0 0 3px var(--pink), 0 8px 0 rgba(255,143,171,.25); background:var(--pink-l); }
+  .booth .no { background:var(--yellow); color:#5c4500; font-family:var(--cute); font-size:14px; padding:2px 11px; box-shadow:0 2px 0 rgba(0,0,0,.12); }
+  .booth .chk { background:var(--pink); font-family:var(--cute); font-weight:400; font-size:15px; padding:3px 12px; transform:rotate(6deg); box-shadow:0 2px 0 rgba(0,0,0,.15); }
+  .booth .chk::before { content:"💖 "; }
+  .bar { border-top:2px solid var(--line); border-radius:22px 22px 0 0; box-shadow:0 -6px 18px rgba(32,201,151,.12); }
+  .cheer::before { content:"💬 "; }
+  .rank { font-family:var(--cute); font-weight:400; font-size:24px; background:var(--yellow); color:#5c4500; border-radius:50%; width:40px; height:40px; line-height:40px; }
+  .cnt b { font-family:var(--cute); font-weight:400; color:var(--pink); font-size:30px; }
+  .stat b { font-family:var(--cute); font-weight:400; color:var(--mint-d); }
+  .tag { font-size:12px; padding:2px 9px; }
+  .logo { margin-bottom:10px; }
 </style>
 </head>
 <body>
