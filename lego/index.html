@@ -136,7 +136,8 @@ async function firestoreStore() {
     put: (id, data) => f.setDoc(f.doc(db, COL, id), data),
     famSet: (k, data) => f.setDoc(f.doc(db, 'families', 'lego_' + k), data),
     famDel: k => f.deleteDoc(f.doc(db, 'families', 'lego_' + k)),
-    watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
+    // 읽기 횟수를 줄이려고 심사 문서(kind = lego)만 듣는다
+    watch: cb => f.onSnapshot(f.query(f.collection(db, COL), f.where('kind', '==', 'lego')), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
   };
 }
 function mockStore() {
@@ -189,7 +190,7 @@ function teamHead(sumLabel, sumVal, max) {
 }
 async function save(patch, msg) {
   flash = '저장 중…'; render();
-  try { await S.set(PRE + 't' + team, Object.assign({ team, ts: Date.now() }, patch)); flash = msg || '저장됨'; }
+  try { await S.set(PRE + 't' + team, Object.assign({ kind: 'lego', team, ts: Date.now() }, patch)); flash = msg || '저장됨'; }
   catch (e) { console.error(e); flash = '저장 실패 — 다시 눌러 주세요'; }
   render();
 }
@@ -276,7 +277,7 @@ async function registerRoster(list) {
   const old = roster && roster.keys || [];
   for (const k of old) if (!by[k]) await S.famDel(k);
   for (const k in by) await S.famSet(k, { teams: by[k] });
-  await S.put(PRE + 'roster', { keys: Object.keys(by), teams: list.map(r => ({ team: r.team, name: r.name })), ts: Date.now() });
+  await S.put(PRE + 'roster', { kind: 'lego', keys: Object.keys(by), teams: list.map(r => ({ team: r.team, name: r.name })), ts: Date.now() });
 }
 function viewRoster(body) {
   const c = el('div', 'card'); c.appendChild(el('h2', null, '참가 명단')); c.lastChild.style.fontSize = '28px';
@@ -309,7 +310,7 @@ try {
   let first = true, ok = false; try { ok = sessionStorage.getItem('lego_ok') === '1'; } catch (e) {}
   S.watch(list => {
     data = {}; names = {};
-    list.forEach(r => { if (r.id === PRE + 'roster') { roster = r; (r.teams || []).forEach(t => { names[t.team] = t.name; }); } else if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; else if (r.id.indexOf(BOOK) === 0 && r.team && r.name) names[r.team] = r.name; });
+    list.forEach(r => { if (r.id === PRE + 'roster') { roster = r; (r.teams || []).forEach(t => { names[t.team] = t.name; }); } else if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; });
     if (first) { first = false; if (ok) enter(); else show('login'); return; }
     if (!$('v-main').classList.contains('hide') && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) render();
   });

@@ -205,7 +205,8 @@ async function firestoreStore() {
     set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
     del: id => f.deleteDoc(f.doc(db, COL, id)),
     fam: async k => { const d = await f.getDoc(f.doc(db, 'families', 'lego_' + k)); return d.exists() ? d.data() : null; },
-    watch: cb => f.onSnapshot(f.collection(db, COL), s => cb(s.docs.map(row)), e => fatal(e))
+    // 읽기 횟수를 줄이려고 필요한 문서만 듣는다: 학생은 자기 팀 문서, 담벼락은 활동지 문서
+    watch: (field, value, cb) => f.onSnapshot(f.query(f.collection(db, COL), f.where(field, '==', value)), s => cb(s.docs.map(row)), e => fatal(e))
   };
 }
 function mockStore() {
@@ -218,7 +219,7 @@ function mockStore() {
     set: async (id, data) => { const db = read(); db[id] = Object.assign({}, db[id], data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
     del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
     fam: async k => { try { return (JSON.parse(localStorage.getItem('book_mockfam')) || {})[k] || null; } catch (e) { return null; } },
-    watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
+    watch: (field, value, cb) => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d)).filter(d => d[field] === value)); subs.push(fn); Promise.resolve().then(fn); return () => subs.splice(subs.indexOf(fn), 1); }
   };
 }
 
@@ -350,7 +351,7 @@ function entryForm(a, n) {
     if (!filled(a.id, d)) { msg.className = 'err'; msg.textContent = NEED[a.id]; return; }
     btn.disabled = true; msg.className = 'err ok'; msg.textContent = '올리는 중…';
     const data = Object.assign({}, d); delete data.shuf;
-    try { await S.set(id, { team: me.team, name: me.name || '', act: a.id, n, data, ts: Date.now() }); touched[id] = false; msg.textContent = '올렸습니다.'; }
+    try { await S.set(id, { kind: 'book', team: me.team, name: me.name || '', act: a.id, n, data, ts: Date.now() }); touched[id] = false; msg.textContent = '올렸습니다.'; }
     catch (e) { console.error(e); msg.className = 'err'; msg.textContent = '올리지 못했습니다. 다시 눌러 주세요.'; }
     btn.disabled = false;
   };
@@ -375,7 +376,7 @@ function renderSheet() {
   if (keep && $(keep)) { $(keep).focus(); try { $(keep).setSelectionRange(pos, pos); } catch (e) {} }
 }
 function renderMain() { $('me-label').textContent = me.team + '팀' + (me.name ? ' · ' + me.name : ''); renderTabs(); renderSheet(); }
-function enterTeam(t) { me = { team: t.team, name: (t.name || '').slice(0, 12) }; lsSet('me', me); $('in-last').value = ''; $('login-pick').classList.add('hide'); show('main'); renderMain(); }
+function enterTeam(t) { me = { team: t.team, name: (t.name || '').slice(0, 12) }; lsSet('me', me); $('in-last').value = ''; $('login-pick').classList.add('hide'); route(); }
 async function doLogin() {
   const k = $('in-last').value.trim(), err = $('login-err'), pick = $('login-pick');
   pick.classList.add('hide'); pick.textContent = '';
@@ -444,14 +445,27 @@ function renderWall() {
 }
 
 /* ====================== 시작 ====================== */
+let unsub = null, subKey = '';
+function listen(field, value) {
+  const key = field + ':' + value; if (key === subKey) return false;
+  if (unsub) unsub(); subKey = key; rows = [];
+  let first = true;
+  unsub = S.watch(field, value, list => {
+    rows = list.filter(r => r.id.indexOf(PRE) === 0 && r.data);
+    if (location.hash === '#wall') renderWall();
+    else if (me) { if (first) renderMain(); else { renderTabs(); if (!Object.values(touched).some(Boolean)) renderSheet(); } }
+    first = false;
+  });
+  return true;
+}
 function route() {
-  if (location.hash === '#wall') { show('wall'); renderWall(); }
-  else if (me) { show('main'); renderMain(); }
-  else show('login');
+  if (location.hash === '#wall') { show('wall'); listen('kind', 'book'); renderWall(); }
+  else if (me) { show('main'); listen('team', me.team); renderMain(); }
+  else { if (unsub) { unsub(); unsub = null; subKey = ''; } show('login'); }
 }
 $('btn-login').onclick = doLogin;
 $('in-last').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-$('btn-out').onclick = () => { me = null; lsSet('me', null); show('login'); };
+$('btn-out').onclick = () => { me = null; lsSet('me', null); route(); };
 $('w-adm').onclick = () => { if (admin) { admin = false; $('w-adm').textContent = '관리'; renderWall(); } else { $('w-pw').classList.remove('hide'); $('w-pw').focus(); } };
 $('w-pw').addEventListener('keydown', e => { if (e.key !== 'Enter') return; if ($('w-pw').value === ADMIN_PW) { admin = true; $('w-adm').textContent = '관리 끝'; renderWall(); } $('w-pw').value = ''; $('w-pw').classList.add('hide'); });
 window.addEventListener('keydown', e => {
@@ -465,13 +479,7 @@ try {
   const mock = new URLSearchParams(location.search).has('mock');
   S = mock ? mockStore() : await firestoreStore();
   me = lsGet('me');
-  let first = true;
-  S.watch(list => {
-    rows = list.filter(r => r.id.indexOf(PRE) === 0 && r.data);
-    if (first) { first = false; route(); return; }
-    if (location.hash === '#wall') renderWall();
-    else if (me) { renderTabs(); if (!Object.values(touched).some(Boolean)) renderSheet(); }
-  });
+  route();
 } catch (e) { fatal(e); }
 </script>
 </body>
