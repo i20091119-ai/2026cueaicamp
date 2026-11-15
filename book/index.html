@@ -365,7 +365,7 @@ const WHALE_DECO = 'M62 196 C96 214 140 216 168 204 M250 208 C262 236 292 252 32
 const COLORS = ['#6CCBCB', '#2F6FB5', '#0E2240', '#F08A6C', '#F6D57A', '#F4A6C0', '#7BC47F', '#9B8CE0', '#FFFFFF'];
 const pen = { color: COLORS[0], size: 30, stk: '' };
 const STICKERS = ['⭐', '🌟', '✨', '💫', '🐟', '🐠', '🐡', '🐙', '🦀', '🐚', '🌊', '💙'];
-function drawStickers(box, list) { box.textContent = ''; (list || []).forEach(k => { if (!Array.isArray(k) || typeof k[0] !== 'string' || k[0].length > 8) return; const sp = el('span', null, k[0]); sp.style.left = Math.max(0, Math.min(100, +k[1] || 0)) + '%'; sp.style.top = Math.max(0, Math.min(100, +k[2] || 0)) + '%'; box.appendChild(sp); }); }
+function drawStickers(box, list) { box.textContent = ''; (list || []).forEach(k => { if (typeof k === 'string') k = k.split('|'); if (!Array.isArray(k) || typeof k[0] !== 'string' || k[0].length > 8) return; const sp = el('span', null, k[0]); sp.style.left = Math.max(0, Math.min(100, +k[1] || 0)) + '%'; sp.style.top = Math.max(0, Math.min(100, +k[2] || 0)) + '%'; box.appendChild(sp); }); }
 function whalePad(d, id) {
   const w = el('div'); w.appendChild(el('div', 'lab', '내 고래 색칠하기 (담벼락 바다에 붙습니다)'));
   const pad = el('div', 'pad'), cv = el('canvas'); cv.width = 600; cv.height = 300; cv.setAttribute('aria-label', '고래 색칠 판');
@@ -389,7 +389,7 @@ function whalePad(d, id) {
     d.art = u; touched[id] = true;
   };
   const stkBox = el('div', 'stk'); pad.appendChild(stkBox); drawStickers(stkBox, d.stk);
-  cv.onpointerdown = e => { if (pen.stk) { const p = at(e); d.stk = (d.stk || []).slice(-19); d.stk.push([pen.stk, Math.round(p[0] / 6), Math.round(p[1] / 3)]); touched[id] = true; drawStickers(stkBox, d.stk); return; } cv.setPointerCapture(e.pointerId); last = at(e); ctx.strokeStyle = pen.color; ctx.lineWidth = pen.size; ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(last[0] + .1, last[1]); ctx.stroke(); };
+  cv.onpointerdown = e => { if (pen.stk) { const p = at(e); d.stk = (d.stk || []).slice(-19); d.stk.push(pen.stk + '|' + Math.round(p[0] / 6) + '|' + Math.round(p[1] / 3)); touched[id] = true; drawStickers(stkBox, d.stk); return; } cv.setPointerCapture(e.pointerId); last = at(e); ctx.strokeStyle = pen.color; ctx.lineWidth = pen.size; ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(last[0] + .1, last[1]); ctx.stroke(); };
   cv.onpointermove = e => { if (!last) return; const p = at(e); ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); last = p; };
   cv.onpointerup = cv.onpointercancel = () => { if (last) { last = null; save(); } };
   w.appendChild(pad);
@@ -452,8 +452,9 @@ function entryForm(a, n) {
     if (!filled(a.id, d)) { msg.className = 'err'; msg.textContent = NEED[a.id]; return; }
     btn.disabled = true; msg.className = 'err ok'; msg.textContent = '올리는 중…';
     const data = Object.assign({}, d); delete data.shuf;
+    if (data.stk) data.stk = data.stk.map(k => Array.isArray(k) ? k.join('|') : k);   // Firestore는 배열 안의 배열을 받지 않는다
     try { await S.set(id, { kind: 'book', team: me.team, name: me.name || '', act: a.id, n, data, ts: Date.now() }); touched[id] = false; msg.textContent = '올렸습니다.'; }
-    catch (e) { console.error(e); msg.className = 'err'; msg.textContent = '올리지 못했습니다. 다시 눌러 주세요.'; }
+    catch (e) { console.error(e); msg.className = 'err'; msg.textContent = '올리지 못했습니다. 다시 눌러 주세요. (' + (e && e.code || e && e.message || '') + ')'; }
     btn.disabled = false;
   };
   sv.appendChild(msg); sv.appendChild(btn); box.appendChild(sv);
