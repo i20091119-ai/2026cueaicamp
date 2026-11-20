@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>핑퐁 로봇 심사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0E2240; --deep:#081830; --cream:#F7F3EA; --aqua:#6CCBCB; --coral:#F08A6C; --brick:#B44A33; --sun:#F6D57A; --soft:#4A5A6E; --mist:#C9DEDD; --line:#E3DCCB; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif; background:var(--cream); color:var(--navy); line-height:1.5; }
+  h1, h2, h3, .jua { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; margin:0; }
+  .hide { display:none !important; }
+  button { font:inherit; font-weight:700; border:0; border-radius:14px; padding:12px 16px; background:var(--navy); color:var(--cream); cursor:pointer; }
+  button.ghost { background:#fff; color:var(--navy); border:2px solid var(--line); }
+  button.small { padding:6px 12px; font-size:14px; border-radius:10px; }
+  input[type=text], input[type=password] { font:inherit; font-size:18px; padding:11px 14px; border:2px solid var(--line); border-radius:14px; background:#fff; color:var(--navy); width:100%; }
+  input:focus, button:focus-visible { outline:3px solid var(--aqua); outline-offset:1px; }
+  .hint { color:var(--soft); font-size:14px; }
+  .err { color:var(--brick); font-weight:700; min-height:22px; margin-top:8px; }
+  .top { background:linear-gradient(180deg,var(--navy),var(--deep)); color:var(--cream); padding:16px; }
+  .top .in { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .top h1 { font-size:28px; flex:1; white-space:nowrap; }
+  .seg { display:flex; gap:6px; }
+  .seg button { background:#16305A; color:var(--mist); border-radius:40px; padding:9px 18px; }
+  .seg button.on { background:var(--sun); color:var(--navy); }
+  .wrap { max-width:1100px; margin:0 auto; padding:16px 16px 80px; }
+  .card { background:#fff; border-radius:22px; padding:18px 20px; box-shadow:0 8px 24px rgba(14,34,64,.08); margin-top:14px; }
+  .login { max-width:400px; margin:60px auto; padding:0 16px; text-align:center; }
+  .login h1 { font-size:40px; }
+  .teams { display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; }
+  .teams button .nm { display:block; font-family:"Gowun Dodum","Noto Sans KR",sans-serif; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
+  .teams button { background:#fff; color:var(--navy); border:2px solid var(--line); padding:10px 0; font-size:18px; position:relative; }
+  .teams button.on { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .teams button.done { border-color:var(--aqua); background:#DDF2F1; }
+  .teams button.on.done { background:var(--navy); }
+  .teams button small { display:block; font-size:11px; font-weight:400; color:var(--soft); }
+  .teams button.on small { color:var(--mist); }
+  .th { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .th h2 { font-size:34px; }
+  .th .sum { margin-left:auto; font-size:16px; color:var(--soft); }
+  .th .sum b { font-family:"Jua",sans-serif; font-weight:400; font-size:34px; color:var(--brick); }
+  .item { border-top:2px dashed var(--line); padding:14px 0 6px; margin-top:12px; }
+  .item h3 { font-size:22px; }
+  .item .q { color:var(--soft); font-size:15px; margin-top:2px; }
+  .lv { display:grid; gap:8px; margin-top:10px; }
+  .lv.m { grid-template-columns:repeat(4,1fr); }
+  .lv.p { grid-template-columns:repeat(5,1fr); }
+  .lv button { background:#fff; color:var(--navy); border:2px solid var(--line); text-align:left; padding:10px 12px; display:flex; flex-direction:column; gap:2px; min-height:74px; }
+  .lv button b { font-family:"Jua",sans-serif; font-weight:400; font-size:24px; line-height:1.1; }
+  .lv button span { font-size:13px; font-weight:400; color:var(--soft); line-height:1.35; }
+  .lv button.on { background:var(--sun); border-color:var(--sun); }
+  .lv button.on span { color:var(--navy); }
+  .row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #EEF6F8; flex-wrap:wrap; }
+  .row .rt { flex:1; min-width:180px; font-size:17px; }
+  .opts { display:flex; gap:6px; flex-wrap:wrap; }
+  button.opt { background:#fff; color:#0E2240; border:3px solid #BFE3F2; box-shadow:0 3px 0 #BFE3F2; padding:8px 14px; font-size:16px; }
+  button.opt.on { background:#FFD966; border-color:#FFD966; box-shadow:0 3px 0 #E0B53A; }
+  button.opt.chk { min-width:78px; }
+  .item .th .sum b { font-size:26px; }
+  .saved { font-size:13px; color:#1b7a6d; font-weight:700; margin-left:8px; }
+  .who { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .who input { max-width:220px; }
+  table { border-collapse:collapse; width:100%; font-size:16px; }
+  th, td { padding:9px 8px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; }
+  th { background:#DDF2F1; font-size:14px; }
+  td.l, th.l { text-align:left; white-space:normal; }
+  td.tot { font-family:"Jua",sans-serif; font-size:22px; color:var(--brick); }
+  td.rk { font-family:"Jua",sans-serif; font-size:20px; }
+  tr.top3 td { background:#FBF3DC; }
+  td.na { color:#b9b3a4; }
+  .scroll { overflow-x:auto; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .bar .sp { flex:1; }
+  @media (max-width:700px) { .lv.m { grid-template-columns:1fr 1fr; } .lv.p { grid-template-columns:repeat(5,1fr); } .lv.p button span { display:none; } }
+
+  /* ---------- 귀여운 테마 ---------- */
+  body { font-family:"Gowun Dodum","Noto Sans KR","Malgun Gothic",sans-serif; background:linear-gradient(180deg,#DFF5F4 0%,#FFF7E6 100%) fixed; font-weight:400; }
+  button, label, .lab, .tabs button, .chips button, .seg button { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; letter-spacing:.2px; }
+  button { border-radius:999px; background:#2F6FB5; color:#fff; box-shadow:0 5px 0 #1F4E86; transition:transform .08s, box-shadow .08s; font-size:18px; }
+  button:active { transform:translateY(4px); box-shadow:0 1px 0 #1F4E86; }
+  button.ghost { background:#fff; color:#2F6FB5; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; }
+  button.small { border-radius:999px; }
+  input[type=text], input[type=number], input[type=password], textarea { border:3px solid #BFE3F2; border-radius:20px; }
+  .card { border-radius:32px; border:4px solid #fff; box-shadow:0 10px 0 rgba(108,203,203,.28), 0 18px 30px rgba(14,34,64,.06); }
+  .hint { font-size:15px; }
+  .mascot { display:block; animation:bob 2.6s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform:translateY(-5px) rotate(-2deg); } to { transform:translateY(5px) rotate(2deg); } }
+  .top { background:linear-gradient(180deg,#7FD6D6,#4FA9D8); }
+  .top h1 { text-shadow:0 3px 0 rgba(14,34,64,.18); }
+  .top .mascot { width:70px; flex:none; }
+  .seg button { background:rgba(255,255,255,.35); color:#0E2240; box-shadow:0 4px 0 rgba(14,34,64,.18); font-size:18px; }
+  .seg button.on { background:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .teams button { border-radius:20px; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; color:#0E2240; background:#fff; font-size:20px; }
+  .teams button.done { background:#DFF5F4; border-color:#6CCBCB; box-shadow:0 4px 0 #6CCBCB; }
+  .teams button.on, .teams button.on.done { background:#2F6FB5; border-color:#2F6FB5; color:#fff; box-shadow:0 4px 0 #1F4E86; }
+  .lv button { border-radius:22px; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; background:#fff; color:#0E2240; font-family:"Gowun Dodum","Noto Sans KR",sans-serif; }
+  .lv button.on { background:#FFD966; border-color:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .item { border-top:3px dotted #BFE3F2; }
+  .th .sum b { color:#F08A6C; }
+  th { background:#DFF5F4; font-family:"Jua",sans-serif; font-weight:400; font-size:15px; }
+  td.tot, td.rk { color:#F08A6C; }
+  tr.top3 td { background:#FFF4D1; }
+  .login .mascot { width:200px; margin:0 auto; }
+  .login h1 { text-shadow:0 4px 0 #BFEDEE; }
+  .login input { text-align:center; font-family:"Jua",sans-serif; font-size:28px; letter-spacing:8px; }
+  .who .seg button { box-shadow:0 4px 0 #D8D0BC; }
+</style>
+</head>
+<body>
+
+<div id="v-load" class="login"><p class="hint" id="load-msg">불러오는 중…</p></div>
+
+<div id="v-login" class="login hide">
+  <svg class="mascot" viewBox="0 0 200 200" aria-hidden="true"><rect x="40" y="46" width="120" height="110" rx="22" fill="#2B2F36" stroke="#0E2240" stroke-width="6"/><rect x="62" y="70" width="76" height="42" rx="12" fill="#F6D57A"/><circle cx="84" cy="91" r="9" fill="#0E2240"/><circle cx="116" cy="91" r="9" fill="#0E2240"/><circle cx="87" cy="88" r="3" fill="#fff"/><circle cx="119" cy="88" r="3" fill="#fff"/><path d="M84 128 Q100 140 116 128" fill="none" stroke="#F6D57A" stroke-width="6" stroke-linecap="round"/><rect x="94" y="22" width="12" height="26" rx="5" fill="#0E2240"/><circle cx="100" cy="20" r="11" fill="#F08A6C" stroke="#0E2240" stroke-width="5"/><circle cx="40" cy="168" r="22" fill="#F6D57A" stroke="#0E2240" stroke-width="6"/><circle cx="160" cy="168" r="22" fill="#F6D57A" stroke="#0E2240" stroke-width="6"/><circle cx="40" cy="168" r="7" fill="#0E2240"/><circle cx="160" cy="168" r="7" fill="#0E2240"/></svg>
+  <h1>핑퐁 로봇 심사</h1>
+  <p class="hint">심사자·판정자 전용</p>
+  <div class="card">
+    <input id="in-pw" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호" aria-label="비밀번호">
+    <div class="err" id="login-err"></div>
+    <button id="btn-login" style="width:100%">들어가기</button>
+  </div>
+</div>
+
+<div id="v-main" class="hide">
+  <div class="top"><div class="in">
+    <svg class="mascot" viewBox="0 0 200 200" aria-hidden="true"><rect x="40" y="46" width="120" height="110" rx="22" fill="#2B2F36" stroke="#0E2240" stroke-width="6"/><rect x="62" y="70" width="76" height="42" rx="12" fill="#F6D57A"/><circle cx="84" cy="91" r="9" fill="#0E2240"/><circle cx="116" cy="91" r="9" fill="#0E2240"/><circle cx="87" cy="88" r="3" fill="#fff"/><circle cx="119" cy="88" r="3" fill="#fff"/><path d="M84 128 Q100 140 116 128" fill="none" stroke="#F6D57A" stroke-width="6" stroke-linecap="round"/><rect x="94" y="22" width="12" height="26" rx="5" fill="#0E2240"/><circle cx="100" cy="20" r="11" fill="#F08A6C" stroke="#0E2240" stroke-width="5"/><circle cx="40" cy="168" r="22" fill="#F6D57A" stroke="#0E2240" stroke-width="6"/><circle cx="160" cy="168" r="22" fill="#F6D57A" stroke="#0E2240" stroke-width="6"/><circle cx="40" cy="168" r="7" fill="#0E2240"/><circle cx="160" cy="168" r="7" fill="#0E2240"/></svg>
+    <h1>핑퐁 로봇 심사</h1>
+    <div class="seg" id="mode"></div>
+  </div></div>
+  <div class="wrap" id="body"></div>
+</div>
+
+<script type="module">
+/* ====== Firebase 설정 (가족 앱 부스 투표와 같은 프로젝트) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmC7FOUIECxATjvx3jyRgwz-fsfQsuNM",
+  authDomain: "aicue-c952a.firebaseapp.com",
+  projectId: "aicue-c952a",
+  storageBucket: "aicue-c952a.firebasestorage.app",
+  messagingSenderId: "929288201351",
+  appId: "1:929288201351:web:ecab6eb22cfe11fe18c422"
+};
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const COL = 'config';        // 현재 규칙이 허용하는 컬렉션. 문서 id 앞에 ping_ 을 붙여 구분한다
+const PRE = 'ping_';
+const ADMIN_PW = '3141';
+const TEAMS = 25;           // 명단이 없을 때의 팀 수. 명단을 등록하면 명단의 팀만 보인다
+function teamList() { const l = roster && roster.teams && roster.teams.length ? Array.from(new Set(roster.teams.map(t => t.team))).sort((a, b) => a - b) : null; if (l) return l; const d = []; for (let t = 1; t <= TEAMS; t++) d.push(t); return d; }
+
+/* ====== 심사 기준 ====== */
+/* 미션마다 세부 항목 체크. 단계 항목(steps)은 하나만 고름. 가장 좋은 도전 기준으로 판정자가 체크 */
+const MISSIONS = [
+  { k: 'm1', t: '① 킥보드 치우기', items: [
+    { k: 'a', t: '주차 칸 안 핑거보드', steps: [[0, '0개'], [2, '1개'], [4, '2개']] },
+    { k: 'b', t: '칸 안 핑거보드가 모두 선에 걸치지 않음', p: 2 },
+    { k: 'c', t: '차에 단 장치(삽·범퍼)로 밀었음', p: 2 },
+    { k: 'd', t: '핑거보드가 뒤집히거나 바퀴가 떨어지지 않음', p: 1 },
+    { k: 'e', t: '첫 도전에 성공', p: 1 } ] },
+  { k: 'm2', t: '② 장바구니 배달', items: [
+    { k: 'a', t: '장치로 장바구니를 걸거나 물었음', p: 2 },
+    { k: 'b', t: '할머니 집 칸', steps: [[0, '못 옮김'], [1, '옮겼지만 칸 밖'], [3, '일부 칸 안'], [5, '전체 칸 안']] },
+    { k: 'c', t: '장바구니가 넘어지지 않음', p: 1 },
+    { k: 'd', t: '첫 도전에 성공', p: 2 } ] },
+  { k: 'm3', t: '③ 엘리베이터 버튼', items: [
+    { k: 'a', t: '탁구공', steps: [[0, '닿지 못함'], [1, '움직임'], [4, '떨어뜨림']] },
+    { k: 'b', t: '차체가 아닌 장치(팔·삽)로 쳤음', p: 2 },
+    { k: 'c', t: '종이컵이 그대로 서 있음', p: 2 },
+    { k: 'd', t: '컵 앞에서 멈췄다가 침(돌진 아님)', p: 1 },
+    { k: 'e', t: '첫 도전에 성공', p: 1 } ] },
+  { k: 'm4', t: '④ 횡단보도 멈춤', items: [
+    { k: 'a', t: '정지선 띠', steps: [[0, '못 멈춤'], [1, '띠 밖에 멈춤'], [3, '앞부분만 띠 안'], [4, '차 전체가 띠 안']] },
+    { k: 'b', t: '불빛으로 "건너도 돼요"', p: 1 },
+    { k: 'c', t: '소리로 "건너도 돼요"', p: 1 },
+    { k: 'd', t: '신호 뒤 다시 출발해 횡단보도 통과', p: 2 },
+    { k: 'e', t: '첫 도전에 성공', p: 2 } ] },
+  { k: 'm5', t: '⑤ 한 바퀴 주행', items: [
+    { k: 'a', t: '차고에서 출발해 차고로 돌아옴', p: 2 },
+    { k: 'b', t: '①→②→③→④ 순서대로 한 번에 이어서', p: 4 },
+    { k: 'c', t: '주행 중 손으로 차를 만지지 않음', p: 2 },
+    { k: 'd', t: '바퀴가 노란 길 밖으로 나가지 않음', p: 2 } ] }
+];
+const MMAX = x => x.items.reduce((s, i) => s + (i.steps ? i.steps[i.steps.length - 1][0] : i.p), 0);
+const M_TOTAL = MISSIONS.reduce((s, x) => s + MMAX(x), 0);
+const mScore = (t, x) => { const o = ((rec(t).m || {})[x.k]) || {}; return x.items.reduce((s, i) => s + (o[i.k] || 0), 0); };
+const mHas = (t, x) => { const o = ((rec(t).m || {})[x.k]); return !!o && Object.keys(o).some(k => o[k] != null); };
+const PROF = [
+  { k: 'q1', t: '① 누구를 돕나', q: '누구를 도와주는 로봇인가요? 그 사람은 무엇이 불편했나요?', lv: { 4: '도울 사람과 불편한 점을 함께 말함', 2: '도울 사람만 말함', 0: '말하지 못함' } },
+  { k: 'q2', t: '② 장치 작동', q: '로봇의 어디가 그걸 해결하나요? 보여 주세요.', lv: { 4: '장치를 직접 작동해 보이며 미션과 연결해 설명', 2: '작동만 보여 주고 설명 없음', 0: '작동·설명 모두 없음' } },
+  { k: 'q3', t: '③ 고친 점', q: '가장 안 됐던 부분은 무엇이고 어떻게 고쳤나요?', lv: { 4: '안 된 까닭과 고친 방법을 함께 말함', 2: '안 된 것만 말함', 0: '말하지 못함' } }
+];
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function show(v) { ['load', 'login', 'main'].forEach(n => $('v-' + n).classList.toggle('hide', n !== v)); }
+function fatal(e) { console.error(e); $('load-msg').textContent = '연결에 문제가 있습니다. 화면을 새로 고쳐 주세요. (' + (e && e.code || e && e.message || e) + ')'; show('load'); }
+
+async function firestoreStore() {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  const f = await import(FB + 'firebase-firestore.js');
+  const db = f.getFirestore(initializeApp(firebaseConfig));
+  return {
+    set: (id, data) => f.setDoc(f.doc(db, COL, id), data, { merge: true }),
+    put: (id, data) => f.setDoc(f.doc(db, COL, id), data),
+    famSet: async () => {},
+    famDel: async () => {},
+    del: id => f.deleteDoc(f.doc(db, COL, id)),
+    bookIds: async () => (await f.getDocs(f.query(f.collection(db, COL), f.where('kind', '==', 'book')))).docs.map(d => d.id),
+    // 읽기 횟수를 줄이려고 심사 문서(kind = lego)만 듣는다
+    watch: cb => f.onSnapshot(f.query(f.collection(db, COL), f.where('kind', '==', 'ping')), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
+  };
+}
+function mockStore() {
+  const K = 'ping_mockdb';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const subs = []; const fire = () => subs.slice().forEach(s => s());
+  const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) ? merge(o[k] || {}, b[k]) : b[k]; return o; };
+  window.addEventListener('storage', fire);
+  return {
+    set: async (id, data) => { const db = read(); db[id] = merge(db[id] || {}, data); localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    put: async (id, data) => { const db = read(); db[id] = data; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    famSet: async (k, data) => { const m = JSON.parse(localStorage.getItem('ping_mockfam') || '{}'); m[k] = data; localStorage.setItem('ping_mockfam', JSON.stringify(m)); },
+    famDel: async k => { const m = JSON.parse(localStorage.getItem('ping_mockfam') || '{}'); delete m[k]; localStorage.setItem('ping_mockfam', JSON.stringify(m)); },
+    del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    bookIds: async () => Object.entries(read()).filter(([id, d]) => d.kind === 'book').map(([id]) => id),
+    watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
+  };
+}
+
+let roster = null, rosterMsg = '';
+let S = null, data = {}, names = {}, mode = 'mission', team = 1, judge = 'A', judgeName = '', flash = '';
+try { judge = sessionStorage.getItem('ping_j') || 'A'; judgeName = sessionStorage.getItem('ping_jn') || ''; } catch (e) {}
+
+/* ---------- 점수 계산 ---------- */
+const rec = t => data[t] || {};
+function mSum(t) { return MISSIONS.reduce((s, x) => s + mScore(t, x), 0); }
+function mTried(t) { return MISSIONS.some(x => mHas(t, x)); }
+function pOf(t, j) { const p = (rec(t).p || {})[j]; if (!p) return null; if (PROF.some(x => p[x.k] == null)) return null; return PROF.reduce((s, x) => s + p[x.k], 0); }
+function pAvg(t) { const v = ['A', 'B'].map(j => pOf(t, j)).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+function q1Avg(t) { const v = ['A', 'B'].filter(j => pOf(t, j) != null).map(j => rec(t).p[j].q2); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; }
+const fmt = n => n == null ? '–' : (Math.round(n * 10) / 10).toString();
+function ranking() {
+  const list = []; teamList().forEach(t => { const p = pAvg(t); list.push({ t, m: mSum(t), p, tot: mSum(t) + (p || 0), q1: q1Avg(t) }); });
+  list.sort((a, b) => b.tot - a.tot || b.m - a.m || b.q1 - a.q1 || a.t - b.t);
+  list.forEach((r, i) => { const prev = list[i - 1]; r.rank = prev && prev.tot === r.tot && prev.m === r.m && prev.q1 === r.q1 ? prev.rank : i + 1; });
+  return list;
+}
+
+/* ---------- 화면 ---------- */
+function teamPicker(doneFn, subFn) {
+  const box = el('div', 'teams');
+  const tl = teamList(); if (!tl.includes(team)) team = tl[0];
+  tl.forEach(t => {
+    const b = el('button', (t === team ? 'on' : '') + (doneFn(t) ? ' done' : ''), String(t));
+    if (names[t]) b.appendChild(el('span', 'nm', names[t]));
+    b.appendChild(el('small', null, subFn(t)));
+    b.setAttribute('aria-label', t + '팀'); b.onclick = () => { team = t; flash = ''; render(); }; box.appendChild(b);
+  });
+  return box;
+}
+function teamHead(sumLabel, sumVal, max) {
+  const h = el('div', 'th'); h.appendChild(el('h2', null, team + '팀' + (names[team] ? ' · ' + names[team] : '')));
+  if (flash) h.appendChild(el('span', 'saved', flash));
+  const s = el('div', 'sum', sumLabel + ' '); s.appendChild(el('b', null, sumVal)); s.appendChild(document.createTextNode(' / ' + max)); h.appendChild(s); return h;
+}
+async function save(patch, msg) {
+  flash = '저장 중…'; render();
+  try { await S.set(PRE + 't' + team, Object.assign({ kind: 'ping', team, ts: Date.now() }, patch)); flash = msg || '저장됨'; }
+  catch (e) { console.error(e); flash = '저장 실패 — 다시 눌러 주세요'; }
+  render();
+}
+function viewMission(body) {
+  const c1 = el('div', 'card'); c1.appendChild(el('div', 'hint', '가족 번호를 고르고 항목을 누르면 바로 저장됩니다. 여러 번 도전하면 가장 좋은 도전을 기준으로 체크합니다. 다시 누르면 취소됩니다.'));
+  const tp = teamPicker(mTried, t => mTried(t) ? mSum(t) + '점' : ' '); tp.style.marginTop = '10px'; c1.appendChild(tp); body.appendChild(c1);
+  const c = el('div', 'card'); c.appendChild(teamHead('미션 합계', mSum(team), M_TOTAL));
+  const m = rec(team).m || {};
+  MISSIONS.forEach(x => {
+    const o = m[x.k] || {};
+    const it = el('div', 'item'), hd = el('div', 'th'); hd.appendChild(el('h3', null, x.t));
+    const sc = el('div', 'sum'); sc.appendChild(el('b', null, mScore(team, x))); sc.appendChild(document.createTextNode(' / ' + MMAX(x))); hd.appendChild(sc);
+    it.appendChild(hd);
+    x.items.forEach(i => {
+      const row = el('div', 'row'); row.appendChild(el('div', 'rt', i.t));
+      const g = el('div', 'opts');
+      if (i.steps) {
+        i.steps.forEach(([pt, name]) => { const on = o[i.k] === pt && o[i.k] != null; const b = el('button', 'opt' + (on ? ' on' : ''), name + (pt ? ' +' + pt : ''));
+          b.setAttribute('aria-pressed', on); b.onclick = () => save({ m: { [x.k]: { [i.k]: on ? null : pt } } }, x.t + ' 저장'); g.appendChild(b); });
+      } else {
+        const on = !!o[i.k]; const b = el('button', 'opt chk' + (on ? ' on' : ''), (on ? '✔ ' : '') + '+' + i.p);
+        b.setAttribute('aria-pressed', on); b.onclick = () => save({ m: { [x.k]: { [i.k]: on ? null : i.p } } }, x.t + ' 저장'); g.appendChild(b);
+      }
+      row.appendChild(g); it.appendChild(row);
+    });
+    c.appendChild(it);
+  });
+  body.appendChild(c);
+}
+function viewProf(body) {
+  const c0 = el('div', 'card'), w = el('div', 'who'); w.appendChild(el('b', null, '심사위원'));
+  const sg = el('div', 'seg'); ['A', 'B'].forEach(j => { const b = el('button', j === judge ? 'on' : '', j); b.style.background = j === judge ? '' : '#E9E3D3'; b.style.color = 'var(--navy)';
+    b.onclick = () => { judge = j; try { sessionStorage.setItem('ping_j', j); } catch (e) {} flash = ''; render(); }; sg.appendChild(b); });
+  w.appendChild(sg);
+  const nm = el('input'); nm.type = 'text'; nm.maxLength = 10; nm.placeholder = '성함'; nm.value = judgeName; nm.setAttribute('aria-label', '심사위원 성함');
+  nm.oninput = () => { judgeName = nm.value; try { sessionStorage.setItem('ping_jn', judgeName); } catch (e) {} }; w.appendChild(nm);
+  w.appendChild(el('span', 'hint', '맡은 가족만 채점합니다. 학생이 답하고, 보호자가 대신 답하면 한 단계 낮춥니다.')); c0.appendChild(w);
+  const tp = teamPicker(t => pOf(t, judge) != null, t => pOf(t, judge) != null ? pOf(t, judge) + '점' : (pOf(t, judge === 'A' ? 'B' : 'A') != null ? '다른 분' : ' ')); tp.style.marginTop = '12px'; c0.appendChild(tp); body.appendChild(c0);
+  const p = ((rec(team).p || {})[judge]) || {};
+  const sum = PROF.reduce((s, x) => s + (p[x.k] || 0), 0);
+  const c = el('div', 'card'); c.appendChild(teamHead('심사위원 ' + judge + ' 합계', sum, 12));
+  PROF.forEach(x => {
+    const it = el('div', 'item'); it.appendChild(el('h3', null, x.t)); it.appendChild(el('div', 'q', '질문: ' + x.q));
+    const lv = el('div', 'lv p');
+    [4, 3, 2, 1, 0].forEach(pt => { const b = el('button', p[x.k] === pt ? 'on' : ''); b.appendChild(el('b', null, pt + '점')); b.appendChild(el('span', null, x.lv[pt] || '사이'));
+      b.setAttribute('aria-pressed', p[x.k] === pt);
+      b.onclick = () => save({ p: { [judge]: { [x.k]: pt, by: judgeName } } }, x.t + ' ' + pt + '점 저장'); lv.appendChild(b); });
+    it.appendChild(lv); c.appendChild(it);
+  });
+  body.appendChild(c);
+}
+function csv() {
+  const head = ['순위', '번호', '가족', '킥보드', '장바구니', '버튼', '횡단보도', '한 바퀴', '미션 합(' + M_TOTAL + ')', '심사 A', '심사 B', '발표 심사(12)', '총점(' + (M_TOTAL + 12) + ')'];
+  const lines = ranking().map(r => { return [r.rank, r.t, names[r.t] || '', ...MISSIONS.map(x => mHas(r.t, x) ? mScore(r.t, x) : ''), r.m, fmt(pOf(r.t, 'A')), fmt(pOf(r.t, 'B')), fmt(r.p), fmt(r.tot)]; });
+  const text = '﻿' + [head].concat(lines).map(l => l.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = '핑퐁로봇_심사결과.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+function viewResult(body) {
+  const c = el('div', 'card'), list = ranking();
+  const bar = el('div', 'bar');
+  let mt = 0, pt = 0; const tn = teamList().length; teamList().forEach(t => { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; });
+  bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + tn + '가족 · 발표 심사 ' + pt + ' / ' + tn + '가족'));
+  bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
+  c.appendChild(el('div', 'hint', '총점 = 미션 합(' + M_TOTAL + ') + 발표 심사(12). 발표 심사는 그 가족을 맡은 심사위원 한 분의 점수. 동점은 미션 합 → ② 장치 작동 → 번호 순.'));
+  const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
+  const hr = el('tr'); ['순위', '번호', '가족', '킥보드', '장바구니', '버튼', '횡단보도', '한 바퀴', '미션 합', '심사 A', '심사 B', '발표 심사', '총점'].forEach((h, i) => hr.appendChild(el('th', i === 2 ? 'l' : '', h))); tb.appendChild(hr);
+  list.forEach(r => {
+    const tr = el('tr', r.rank <= 3 && r.tot > 0 ? 'top3' : '');
+    tr.appendChild(el('td', 'rk', r.tot > 0 ? r.rank : '–')); tr.appendChild(el('td', null, r.t)); tr.appendChild(el('td', 'l', names[r.t] || ''));
+    MISSIONS.forEach(x => tr.appendChild(el('td', mHas(r.t, x) ? '' : 'na', mHas(r.t, x) ? mScore(r.t, x) : '–')));
+    tr.appendChild(el('td', null, r.m)); ['A', 'B'].forEach(j => { const v = pOf(r.t, j); tr.appendChild(el('td', v == null ? 'na' : '', fmt(v))); });
+    tr.appendChild(el('td', r.p == null ? 'na' : '', fmt(r.p))); tr.appendChild(el('td', 'tot', fmt(r.tot))); tb.appendChild(tr);
+  });
+  sc.appendChild(tb); c.appendChild(sc); body.appendChild(c);
+}
+/* ---------- 명단 ---------- */
+function parseRoster(text) {
+  const out = [], bad = [];
+  text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(l => {
+    const m = l.match(/^(\d{1,2})\s*(?:팀|번)?[\s,\t]+(.*?)[\s,\t]*([\d\-\s]{4,})?$/);
+    const digits = m && m[3] ? m[3].replace(/\D/g, '') : '';
+    if (!m || !m[2] || +m[1] < 1 || +m[1] > 60) { bad.push(l); return; }
+    out.push({ team: +m[1], name: m[2].replace(/[,\t]/g, ' ').trim().slice(0, 12), key: digits.slice(-4) || ('n' + m[1]) });
+  });
+  return { out, bad };
+}
+async function registerRoster(list) {
+  const by = {}; list.forEach(r => { (by[r.key] = by[r.key] || []).push({ team: r.team, name: r.name }); });
+  const old = roster && roster.keys || [];
+  for (const k of old) if (!by[k]) await S.famDel(k);
+  for (const k in by) await S.famSet(k, { teams: by[k] });
+  await S.put(PRE + 'roster', { kind: 'ping', keys: Object.keys(by), teams: list.map(r => ({ team: r.team, name: r.name })), ts: Date.now() });
+}
+function viewRoster(body) {
+  const c = el('div', 'card'); c.appendChild(el('h2', null, '참가 명단')); c.lastChild.style.fontSize = '28px';
+  const n = roster && roster.teams ? roster.teams.length : 0;
+  c.appendChild(el('div', 'hint', '명단을 등록하면 미션 판정 · 발표 심사 · 결과에 명단의 가족만 이름과 함께 나옵니다. 지금 등록된 가족: ' + n + '팀. 새로 등록하면 이전 명단은 지워집니다.'));
+  const ta = el('textarea'); ta.rows = 10; ta.placeholder = '한 줄에 한 가족: 번호, 이름\n1 홍길동\n2 김철수';
+  ta.style.cssText = 'width:100%;font:inherit;font-size:16px;padding:12px;border:2px solid var(--line);border-radius:14px;margin-top:10px'; ta.setAttribute('aria-label', '명단 붙여넣기'); c.appendChild(ta);
+  const bar = el('div', 'bar'); bar.style.marginTop = '10px';
+  const go = el('button', null, '명단 등록'), dm = el('button', 'ghost', '연습용 명단 넣기 (1~25)'), msg = el('span', 'saved', rosterMsg);
+  const run = async list => { msg.textContent = '등록 중…'; try { await registerRoster(list); rosterMsg = list.length + '팀 등록됨'; } catch (e) { console.error(e); rosterMsg = '등록 실패 — 다시 눌러 주세요'; } render(); };
+  go.onclick = () => { const { out, bad } = parseRoster(ta.value); if (!out.length || bad.length) { msg.textContent = bad.length ? '읽지 못한 줄: ' + bad[0] : '명단을 붙여 넣어 주세요'; msg.style.color = 'var(--brick)'; return; } run(out); };
+  dm.onclick = () => { const l = []; for (let t = 1; t <= TEAMS; t++) l.push({ team: t, name: '연습 ' + t + '팀', key: String(t).padStart(4, '0') }); run(l); };
+  bar.appendChild(go); bar.appendChild(dm); bar.appendChild(msg); c.appendChild(bar);
+  if (n) { const g = el('div', 'hint'); g.style.marginTop = '12px'; g.textContent = roster.teams.slice().sort((a, b) => a.team - b.team).map(t => t.team + '팀 ' + t.name).join(' · '); c.appendChild(g); }
+  body.appendChild(c);
+}
+/* ---------- 숨은 기능: 위쪽 로봇을 7번 누르면 전체 지우기가 나온다 ---------- */
+let robotTaps = 0, wipeOpen = false, wipeArm = '', wipeMsg = '';
+function viewWipe(body) {
+  const c = el('div', 'card'); c.style.borderColor = '#F08A6C';
+  c.appendChild(el('h2', null, '전체 지우기')); c.lastChild.style.fontSize = '28px';
+  c.appendChild(el('div', 'hint', '연습 때 넣은 점수를 비울 때만 씁니다. 지운 내용은 되돌릴 수 없습니다. 명단은 지워지지 않습니다. 단추를 한 번 누르면 확인 문구로 바뀌고, 한 번 더 눌러야 지워집니다.'));
+  const bar = el('div', 'bar'); bar.style.marginTop = '12px';
+  const mk = (key, label, run) => {
+    const b = el('button', wipeArm === key ? '' : 'ghost', wipeArm === key ? '정말 지우기 — 한 번 더 누르기' : label);
+    if (wipeArm === key) { b.style.background = '#B44A33'; b.style.boxShadow = '0 5px 0 #7A2E22'; }
+    b.onclick = async () => {
+      if (wipeArm !== key) { wipeArm = key; wipeMsg = ''; render(); return; }
+      wipeArm = ''; wipeMsg = '지우는 중…'; render();
+      try { const n = await run(); wipeMsg = label.replace(' 모두 지우기', '') + ' ' + n + '건 지움'; } catch (e) { console.error(e); wipeMsg = '지우지 못했습니다. 다시 눌러 주세요.'; }
+      render();
+    };
+    bar.appendChild(b);
+  };
+  mk('score', '심사 점수 모두 지우기', async () => { const ids = Object.values(data).map(r => r.id); for (const id of ids) await S.del(id); return ids.length; });
+  const x = el('button', 'ghost small', '닫기'); x.onclick = () => { wipeOpen = false; wipeArm = ''; wipeMsg = ''; robotTaps = 0; render(); }; bar.appendChild(x);
+  if (wipeMsg) bar.appendChild(el('span', 'saved', wipeMsg));
+  c.appendChild(bar); body.appendChild(c);
+}
+function render() {
+  const seg = $('mode'); seg.textContent = '';
+  [['mission', '미션 판정'], ['prof', '발표 심사'], ['result', '결과'], ['roster', '명단']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('ping_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
+  const body = $('body'), y = window.scrollY; body.textContent = '';
+  if (mode === 'mission') viewMission(body); else if (mode === 'prof') viewProf(body); else if (mode === 'roster') viewRoster(body); else viewResult(body);
+  if (wipeOpen) viewWipe(body);
+  window.scrollTo(0, y);
+}
+
+function enter() { try { sessionStorage.setItem('ping_ok', '1'); mode = sessionStorage.getItem('ping_mode') || 'mission'; } catch (e) {} show('main'); render(); }
+document.querySelector('.top .mascot').addEventListener('click', () => { if (++robotTaps >= 7 && !wipeOpen) { wipeOpen = true; render(); window.scrollTo(0, document.body.scrollHeight); } });
+$('btn-login').onclick = () => { if ($('in-pw').value === ADMIN_PW) enter(); else $('login-err').textContent = '비밀번호가 다릅니다.'; };
+$('in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-login').click(); });
+try {
+  S = new URLSearchParams(location.search).has('mock') ? mockStore() : await firestoreStore();
+  let first = true, ok = false; try { ok = sessionStorage.getItem('ping_ok') === '1'; } catch (e) {}
+  S.watch(list => {
+    data = {}; names = {};
+    list.forEach(r => { if (r.id === PRE + 'roster') { roster = r; (r.teams || []).forEach(t => { names[t.team] = t.name; }); } else if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; });
+    if (first) { first = false; if (ok) enter(); else show('login'); return; }
+    if (!$('v-main').classList.contains('hide') && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) render();
+  });
+} catch (e) { fatal(e); }
+</script>
+</body>
+</html>
