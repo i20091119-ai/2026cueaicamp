@@ -189,7 +189,7 @@ const mScore = (t, x) => { const o = ((rec(t).m || {})[x.k]) || {}; return x.ite
 const mHas = (t, x) => { const o = ((rec(t).m || {})[x.k]); return !!o && Object.keys(o).some(k => o[k] != null); };
 const PROF = [
   { k: 'q1', t: '① 누구를 돕나', q: '누구를 도와주는 로봇인가요? 그 사람은 무엇이 불편했나요?', lv: { 4: '도울 사람과 불편한 점을 함께 말함', 2: '도울 사람만 말함', 0: '말하지 못함' } },
-  { k: 'q2', t: '② 장치 작동', q: '로봇의 어디가 그걸 해결하나요? 보여 주세요.', lv: { 4: '장치를 직접 작동해 보이며 미션과 연결해 설명', 2: '작동만 보여 주고 설명 없음', 0: '작동·설명 모두 없음' } },
+  { k: 'q2', t: '② 구성한 까닭', q: '왜 이렇게 장치와 코드를 구성했나요?', lv: { 4: '장치와 코드를 그렇게 만든 까닭을 미션과 연결해 말함', 2: '장치나 코드 중 하나만 · 무엇을 했는지만 말함', 0: '말하지 못함' } },
   { k: 'q3', t: '③ 고친 점', q: '가장 안 됐던 부분은 무엇이고 어떻게 고쳤나요?', lv: { 4: '안 된 까닭과 고친 방법을 함께 말함', 2: '안 된 것만 말함', 0: '말하지 못함' } }
 ];
 
@@ -332,7 +332,7 @@ function viewResult(body) {
   let mt = 0, pt = 0; const tn = teamList().length; teamList().forEach(t => { if (mTried(t)) mt++; if (pAvg(t) != null) pt++; });
   bar.appendChild(el('b', null, '미션 판정 ' + mt + ' / ' + tn + '가족 · 발표 심사 ' + pt + ' / ' + tn + '가족'));
   bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
-  c.appendChild(el('div', 'hint', '총점 = 미션 합(' + M_TOTAL + ') + 발표 심사(12). 발표 심사는 그 가족을 맡은 심사위원 한 분의 점수. 동점은 미션 합 → ② 장치 작동 → 번호 순.'));
+  c.appendChild(el('div', 'hint', '총점 = 미션 합(' + M_TOTAL + ') + 발표 심사(12). 발표 심사는 그 가족을 맡은 심사위원 한 분의 점수. 동점은 미션 합 → ② 구성한 까닭 → 번호 순.'));
   const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
   const hr = el('tr'); ['순위', '번호', '가족', '킥보드', '장바구니', '버튼', '횡단보도', '한 바퀴', '미션 합', '심사 A', '심사 B', '발표 심사', '총점'].forEach((h, i) => hr.appendChild(el('th', i === 2 ? 'l' : '', h))); tb.appendChild(hr);
   list.forEach(r => {
