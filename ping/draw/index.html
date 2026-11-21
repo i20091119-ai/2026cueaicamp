@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>핑퐁 로봇 상품 추첨</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Gowun Dodum","Malgun Gothic",sans-serif; background:linear-gradient(180deg,#DFF5F4,#FFF7E6) fixed; color:#0E2240; }
+  h1, h2, button, .jua { font-family:"Jua","Malgun Gothic",sans-serif; font-weight:400; margin:0; }
+  .top { background:linear-gradient(180deg,#7FD6D6,#4FA9D8); padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .top h1 { font-size:30px; flex:1; }
+  .wrap { max-width:1200px; margin:0 auto; padding:16px 16px 60px; display:grid; grid-template-columns:1.25fr 1fr; gap:16px; }
+  @media (max-width:860px) { .wrap { grid-template-columns:1fr; } }
+  .card { background:#fff; border-radius:28px; border:4px solid #fff; box-shadow:0 10px 0 rgba(108,203,203,.28); padding:18px 20px; }
+  button { font-size:18px; border:0; border-radius:999px; padding:10px 18px; background:#2F6FB5; color:#fff; box-shadow:0 5px 0 #1F4E86; cursor:pointer; }
+  button:active { transform:translateY(4px); box-shadow:0 1px 0 #1F4E86; }
+  button.ghost { background:#fff; color:#2F6FB5; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; font-size:15px; padding:7px 14px; }
+  button:disabled { opacity:.45; cursor:default; }
+  .hint { color:#4A5A6E; font-size:15px; }
+  .names { display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:8px; margin-top:12px; }
+  .names button { background:#fff; color:#0E2240; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; border-radius:18px; padding:10px 4px; font-size:21px; }
+  .names button small { display:block; font-family:"Gowun Dodum",sans-serif; font-size:12px; color:#4A5A6E; min-height:16px; }
+  .names button.out { background:#EDEAE2; border-color:#D8D0BC; box-shadow:0 4px 0 #D8D0BC; color:#9A958A; text-decoration:line-through; }
+  .names button.win { background:#FFD966; border-color:#FFD966; box-shadow:0 4px 0 #E0B53A; text-decoration:none; color:#0E2240; }
+  .names button.hot { background:#2F6FB5; border-color:#2F6FB5; color:#fff; box-shadow:0 4px 0 #1F4E86; }
+  .prize { font-size:22px; margin-top:4px; }
+  .stage { text-align:center; padding:20px 8px 8px; }
+  .stage .label { font-size:20px; color:#4A5A6E; }
+  .stage .name { font-family:"Jua",sans-serif; font-size:clamp(64px,11vw,130px); line-height:1.1; min-height:1.15em; color:#0E2240; }
+  .stage .name.done { color:#F0704A; animation:pop .5s ease; }
+  @keyframes pop { 0% { transform:scale(.6); } 70% { transform:scale(1.12); } 100% { transform:scale(1); } }
+  .go { font-size:30px; padding:16px 44px; background:#F0704A; box-shadow:0 6px 0 #B44A33; margin-top:10px; }
+  .go:active { box-shadow:0 1px 0 #B44A33; }
+  ol { margin:10px 0 0; padding:0; list-style:none; }
+  ol li { display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:2px dotted #BFE3F2; font-size:19px; }
+  ol li b { font-family:"Jua",sans-serif; font-weight:400; font-size:24px; margin-left:auto; }
+  ol li.next { background:#FFF4D1; border-radius:12px; padding:9px 10px; }
+  ol li .x { font-size:13px; padding:4px 10px; }
+  .bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+</style>
+</head>
+<body>
+<div class="top"><h1>핑퐁 로봇 상품 추첨</h1><span class="hint" id="count"></span></div>
+<div class="wrap">
+  <div>
+    <div class="card stage">
+      <div class="label" id="pl">다음 상품</div>
+      <div class="name" id="big">?</div>
+      <button class="go" id="go">뽑기</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2 style="font-size:24px">추첨 대상</h2>
+      <div class="hint">이름을 누르면 추첨에서 빠집니다(금 · 은 · 동, 열심상). 다시 누르면 돌아옵니다. 뽑힌 사람은 자동으로 빠집니다.</div>
+      <div class="names" id="names"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:24px">상품</h2>
+    <div class="hint">위에서부터 차례로 뽑습니다. 잘못 뽑았으면 「취소」를 누르세요.</div>
+    <ol id="prizes"></ol>
+    <div class="bar"><button class="ghost" id="reset">처음부터 다시</button><span class="hint" id="msg"></span></div>
+  </div>
+</div>
+<script>
+const NAMES = ['구태훈','김동현','김한서','류하준','문지의','박선우','박유나','배지훈','서리우','윤성준','이유노','이하영','장지형','장지후','지운우','차성윤','허진오'];
+const PRIZES = ['셀카봉','셀카봉','셀카봉','블루투스 스피커','블루투스 스피커','와인 + 마우스'];
+const KEY = 'ping_draw_v1';
+let st = { out: [], win: Array(PRIZES.length).fill(null) }, spinning = false, hot = null, arm = false;
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.out) && Array.isArray(s.win) && s.win.length === PRIZES.length) st = s; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const pool = () => NAMES.filter(n => !st.out.includes(n) && !st.win.includes(n));
+const nextIdx = () => st.win.indexOf(null);
+function render() {
+  const box = $('names'); box.textContent = '';
+  NAMES.forEach((n, i) => {
+    const w = st.win.indexOf(n), b = document.createElement('button');
+    b.className = w >= 0 ? 'win' : st.out.includes(n) ? 'out' : n === hot ? 'hot' : '';
+    b.textContent = n; const sm = document.createElement('small'); sm.textContent = w >= 0 ? PRIZES[w] : st.out.includes(n) ? '제외' : (i + 1) + '번'; b.appendChild(sm);
+    b.disabled = spinning || w >= 0;
+    b.onclick = () => { st.out = st.out.includes(n) ? st.out.filter(x => x !== n) : st.out.concat(n); save(); render(); };
+    box.appendChild(b);
+  });
+  const ni = nextIdx(), ol = $('prizes'); ol.textContent = '';
+  PRIZES.forEach((p, i) => {
+    const li = document.createElement('li'); if (i === ni) li.className = 'next';
+    li.appendChild(document.createTextNode((i + 1) + '. ' + p));
+    const b = document.createElement('b'); b.textContent = st.win[i] || (i === ni ? '뽑을 차례' : '–'); li.appendChild(b);
+    if (st.win[i]) { const x = document.createElement('button'); x.className = 'ghost x'; x.textContent = '취소'; x.disabled = spinning; x.onclick = () => { st.win[i] = null; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); }; li.appendChild(x); }
+    ol.appendChild(li);
+  });
+  $('pl').textContent = ni < 0 ? '추첨 끝' : '다음 상품 · ' + PRIZES[ni];
+  $('count').textContent = '추첨 대상 ' + pool().length + '명 · 남은 상품 ' + st.win.filter(x => !x).length + '개';
+  $('go').disabled = spinning || ni < 0 || pool().length === 0;
+  $('reset').textContent = arm ? '정말 지우기 — 한 번 더' : '처음부터 다시';
+}
+function rnd(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+$('go').onclick = () => {
+  const p = pool(), ni = nextIdx(); if (!p.length || ni < 0 || spinning) return;
+  const winner = p[rnd(p.length)]; spinning = true; arm = false;
+  const big = $('big'); big.className = 'name'; let t = 0, delay = 60;
+  const tick = () => {
+    hot = p[rnd(p.length)]; big.textContent = hot; render();
+    t += delay; if (t > 2200) delay *= 1.22;
+    if (delay > 520) { hot = null; st.win[ni] = winner; save(); spinning = false; big.textContent = winner; big.className = 'name done'; render(); return; }
+    setTimeout(tick, delay);
+  };
+  tick();
+};
+$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: [], win: Array(PRIZES.length).fill(null) }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
+render();
+</script>
+</body>
+</html>
