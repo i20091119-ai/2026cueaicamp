@@ -42,7 +42,7 @@
 </style>
 </head>
 <body>
-<div class="top"><h1>핑퐁 로봇 상품 추첨</h1><span class="hint" id="count"></span></div>
+<div class="top"><h1>핑퐁 로봇 상품 추첨</h1><span class="hint" id="count"></span><button class="ghost" id="mode"></button></div>
 <div class="wrap">
   <div>
     <div class="card stage">
@@ -52,7 +52,7 @@
     </div>
     <div class="card" style="margin-top:16px">
       <h2 style="font-size:24px">추첨 대상</h2>
-      <div class="hint">이름을 누르면 추첨에서 빠집니다(금 · 은 · 동, 열심상). 다시 누르면 돌아옵니다. 뽑힌 사람은 자동으로 빠집니다.</div>
+      <div class="hint" id="nhint"></div>
       <div class="names" id="names"></div>
     </div>
   </div>
@@ -67,7 +67,7 @@
 const NAMES = ['구태훈','김동현','김한서','류하준','문지의','박선우','박유나','배지훈','서리우','윤성준','이유노','이하영','장지형','장지후','지운우','차성윤','허진오'];
 const PRIZES = ['셀카봉','셀카봉','셀카봉','블루투스 스피커','블루투스 스피커','와인 + 마우스'];
 const KEY = 'ping_draw_v1';
-let st = { out: [], win: Array(PRIZES.length).fill(null) }, spinning = false, hot = null, arm = false;
+let st = { out: [], win: Array(PRIZES.length).fill(null), show: false }, spinning = false, hot = null, arm = false;
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.out) && Array.isArray(s.win) && s.win.length === PRIZES.length) st = s; } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
 const $ = id => document.getElementById(id);
@@ -75,12 +75,16 @@ const pool = () => NAMES.filter(n => !st.out.includes(n) && !st.win.includes(n))
 const nextIdx = () => st.win.indexOf(null);
 function render() {
   const box = $('names'); box.textContent = '';
+  $('mode').textContent = st.show ? '준비 화면으로' : '추첨 화면으로 (제외한 이름 숨김)';
+  $('nhint').textContent = st.show ? '뽑힌 사람은 다음 추첨에서 빠집니다.' : '준비 화면 — 이름을 누르면 추첨에서 빠집니다. 다시 누르면 돌아옵니다. 다 고른 뒤 위의 「추첨 화면으로」를 누르고 화면을 띄우세요.';
+  $('reset').style.display = st.show ? 'none' : '';
   NAMES.forEach((n, i) => {
+    if (st.show && st.out.includes(n)) return;
     const w = st.win.indexOf(n), b = document.createElement('button');
     b.className = w >= 0 ? 'win' : st.out.includes(n) ? 'out' : n === hot ? 'hot' : '';
     b.textContent = n; const sm = document.createElement('small'); sm.textContent = w >= 0 ? PRIZES[w] : st.out.includes(n) ? '제외' : (i + 1) + '번'; b.appendChild(sm);
     b.disabled = spinning || w >= 0;
-    b.onclick = () => { st.out = st.out.includes(n) ? st.out.filter(x => x !== n) : st.out.concat(n); save(); render(); };
+    b.onclick = () => { if (st.show) return; st.out = st.out.includes(n) ? st.out.filter(x => x !== n) : st.out.concat(n); save(); render(); };
     box.appendChild(b);
   });
   const ni = nextIdx(), ol = $('prizes'); ol.textContent = '';
@@ -92,7 +96,7 @@ function render() {
     ol.appendChild(li);
   });
   $('pl').textContent = ni < 0 ? '추첨 끝' : '다음 상품 · ' + PRIZES[ni];
-  $('count').textContent = '추첨 대상 ' + pool().length + '명 · 남은 상품 ' + st.win.filter(x => !x).length + '개';
+  $('count').textContent = st.show ? '남은 상품 ' + st.win.filter(x => !x).length + '개' : '추첨 대상 ' + pool().length + '명 · 남은 상품 ' + st.win.filter(x => !x).length + '개';
   $('go').disabled = spinning || ni < 0 || pool().length === 0;
   $('reset').textContent = arm ? '정말 지우기 — 한 번 더' : '처음부터 다시';
 }
@@ -109,7 +113,8 @@ $('go').onclick = () => {
   };
   tick();
 };
-$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: [], win: Array(PRIZES.length).fill(null) }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
+$('mode').onclick = () => { if (spinning) return; st.show = !st.show; arm = false; save(); render(); };
+$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: [], win: Array(PRIZES.length).fill(null), show: false }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
 render();
 </script>
 </body>
