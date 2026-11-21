@@ -66,8 +66,9 @@
 <script>
 const NAMES = ['구태훈','김동현','김한서','류하준','문지의','박선우','박유나','배지훈','서리우','윤성준','이유노','이하영','장지형','장지후','지운우','차성윤','허진오'];
 const PRIZES = ['셀카봉','셀카봉','셀카봉','블루투스 스피커','블루투스 스피커','와인 + 마우스'];
-const KEY = 'ping_draw_v1';
-let st = { out: [], win: Array(PRIZES.length).fill(null), show: false }, spinning = false, hot = null, arm = false;
+const KEY = 'ping_draw_v2';
+const PRE_OUT = ['지운우','차성윤','이유노'];   // 노력상 — 처음부터 추첨에서 빠짐
+let st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: false }, spinning = false, hot = null, arm = false;
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.out) && Array.isArray(s.win) && s.win.length === PRIZES.length) st = s; } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
 const $ = id => document.getElementById(id);
@@ -114,7 +115,7 @@ $('go').onclick = () => {
   tick();
 };
 $('mode').onclick = () => { if (spinning) return; st.show = !st.show; arm = false; save(); render(); };
-$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: [], win: Array(PRIZES.length).fill(null), show: false }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
+$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: false }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
 render();
 </script>
 </body>
