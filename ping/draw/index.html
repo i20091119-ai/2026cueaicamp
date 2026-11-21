@@ -50,7 +50,7 @@
       <div class="name" id="big">?</div>
       <button class="go" id="go">뽑기</button>
     </div>
-    <div class="card" style="margin-top:16px">
+    <div class="card" id="ncard" style="margin-top:16px">
       <h2 style="font-size:24px">추첨 대상</h2>
       <div class="hint" id="nhint"></div>
       <div class="names" id="names"></div>
@@ -66,9 +66,9 @@
 <script>
 const NAMES = ['구태훈','김동현','김한서','류하준','문지의','박선우','박유나','배지훈','서리우','윤성준','이유노','이하영','장지형','장지후','지운우','차성윤','허진오'];
 const PRIZES = ['경품 1','경품 2','경품 3'];
-const KEY = 'ping_draw_v5';
+const KEY = 'ping_draw_v6';
 const PRE_OUT = ['지운우','차성윤','이유노'];   // 노력상 3명 — 처음부터 추첨에서 빠짐
-let st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: false }, spinning = false, hot = null, arm = false;
+let st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: true }, spinning = false, hot = null, arm = false;
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.out) && Array.isArray(s.win) && s.win.length === PRIZES.length) st = s; } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
 const $ = id => document.getElementById(id);
@@ -76,7 +76,8 @@ const pool = () => NAMES.filter(n => !st.out.includes(n) && !st.win.includes(n))
 const nextIdx = () => st.win.indexOf(null);
 function render() {
   const box = $('names'); box.textContent = '';
-  $('mode').textContent = st.show ? '준비 화면으로' : '추첨 화면으로 (제외한 이름 숨김)';
+  $('mode').textContent = st.show ? '준비' : '추첨 화면으로 (이름 목록 숨김)';
+  $('ncard').style.display = st.show ? 'none' : '';
   $('nhint').textContent = st.show ? '뽑힌 사람은 다음 추첨에서 빠집니다.' : '준비 화면 — 이름을 누르면 추첨에서 빠집니다. 다시 누르면 돌아옵니다. 다 고른 뒤 위의 「추첨 화면으로」를 누르고 화면을 띄우세요.';
   $('reset').style.display = st.show ? 'none' : '';
   NAMES.forEach((n, i) => {
@@ -97,7 +98,7 @@ function render() {
     ol.appendChild(li);
   });
   $('pl').textContent = ni < 0 ? '추첨 끝' : '다음 상품 · ' + PRIZES[ni];
-  $('count').textContent = st.show ? '남은 상품 ' + st.win.filter(x => !x).length + '개' : '추첨 대상 ' + pool().length + '명 · 남은 상품 ' + st.win.filter(x => !x).length + '개';
+  $('count').textContent = st.show ? '' : '추첨 대상 ' + pool().length + '명 · 남은 상품 ' + st.win.filter(x => !x).length + '개';
   $('go').disabled = spinning || ni < 0 || pool().length === 0;
   $('reset').textContent = arm ? '정말 지우기 — 한 번 더' : '처음부터 다시';
 }
@@ -115,7 +116,7 @@ $('go').onclick = () => {
   tick();
 };
 $('mode').onclick = () => { if (spinning) return; st.show = !st.show; arm = false; save(); render(); };
-$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: false }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
+$('reset').onclick = () => { if (!arm) { arm = true; render(); return; } arm = false; st = { out: PRE_OUT.slice(), win: Array(PRIZES.length).fill(null), show: true }; save(); $('big').textContent = '?'; $('big').className = 'name'; render(); };
 render();
 </script>
 </body>
