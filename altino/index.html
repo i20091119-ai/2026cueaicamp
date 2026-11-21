@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>알티노 로봇 심사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0E2240; --deep:#081830; --cream:#F7F3EA; --aqua:#6CCBCB; --coral:#F08A6C; --brick:#B44A33; --sun:#F6D57A; --soft:#4A5A6E; --mist:#C9DEDD; --line:#E3DCCB; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { font-family:"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif; background:var(--cream); color:var(--navy); line-height:1.5; }
+  h1, h2, h3, .jua { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; margin:0; }
+  .hide { display:none !important; }
+  button { font:inherit; font-weight:700; border:0; border-radius:14px; padding:12px 16px; background:var(--navy); color:var(--cream); cursor:pointer; }
+  button.ghost { background:#fff; color:var(--navy); border:2px solid var(--line); }
+  button.small { padding:6px 12px; font-size:14px; border-radius:10px; }
+  input[type=text], input[type=password] { font:inherit; font-size:18px; padding:11px 14px; border:2px solid var(--line); border-radius:14px; background:#fff; color:var(--navy); width:100%; }
+  input:focus, button:focus-visible { outline:3px solid var(--aqua); outline-offset:1px; }
+  .hint { color:var(--soft); font-size:14px; }
+  .err { color:var(--brick); font-weight:700; min-height:22px; margin-top:8px; }
+  .top { background:linear-gradient(180deg,var(--navy),var(--deep)); color:var(--cream); padding:16px; }
+  .top .in { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .top h1 { font-size:28px; flex:1; white-space:nowrap; }
+  .seg { display:flex; gap:6px; }
+  .seg button { background:#16305A; color:var(--mist); border-radius:40px; padding:9px 18px; }
+  .seg button.on { background:var(--sun); color:var(--navy); }
+  .wrap { max-width:1100px; margin:0 auto; padding:16px 16px 80px; }
+  .card { background:#fff; border-radius:22px; padding:18px 20px; box-shadow:0 8px 24px rgba(14,34,64,.08); margin-top:14px; }
+  .login { max-width:400px; margin:60px auto; padding:0 16px; text-align:center; }
+  .login h1 { font-size:40px; }
+  .teams { display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; }
+  .teams button .nm { display:block; font-family:"Gowun Dodum","Noto Sans KR",sans-serif; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
+  .teams button { background:#fff; color:var(--navy); border:2px solid var(--line); padding:10px 0; font-size:18px; position:relative; }
+  .teams button.on { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .teams button.done { border-color:var(--aqua); background:#DDF2F1; }
+  .teams button.on.done { background:var(--navy); }
+  .teams button small { display:block; font-size:11px; font-weight:400; color:var(--soft); }
+  .teams button.on small { color:var(--mist); }
+  .th { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .th h2 { font-size:34px; }
+  .th .sum { margin-left:auto; font-size:16px; color:var(--soft); }
+  .th .sum b { font-family:"Jua",sans-serif; font-weight:400; font-size:34px; color:var(--brick); }
+  .item { border-top:2px dashed var(--line); padding:14px 0 6px; margin-top:12px; }
+  .item h3 { font-size:22px; }
+  .item .q { color:var(--soft); font-size:15px; margin-top:2px; }
+  .lv { display:grid; gap:8px; margin-top:10px; }
+  .lv.m { grid-template-columns:repeat(4,1fr); }
+  .lv.p { grid-template-columns:repeat(5,1fr); }
+  .lv button { background:#fff; color:var(--navy); border:2px solid var(--line); text-align:left; padding:10px 12px; display:flex; flex-direction:column; gap:2px; min-height:74px; }
+  .lv button b { font-family:"Jua",sans-serif; font-weight:400; font-size:24px; line-height:1.1; }
+  .lv button span { font-size:13px; font-weight:400; color:var(--soft); line-height:1.35; }
+  .lv button.on { background:var(--sun); border-color:var(--sun); }
+  .lv button.on span { color:var(--navy); }
+  .row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #EEF6F8; flex-wrap:wrap; }
+  .row .rt { flex:1; min-width:180px; font-size:17px; }
+  .opts { display:flex; gap:6px; flex-wrap:wrap; }
+  button.opt { background:#fff; color:#0E2240; border:3px solid #BFE3F2; box-shadow:0 3px 0 #BFE3F2; padding:8px 14px; font-size:16px; }
+  button.opt.on { background:#FFD966; border-color:#FFD966; box-shadow:0 3px 0 #E0B53A; }
+  button.opt.chk { min-width:78px; }
+  .item .th .sum b { font-size:26px; }
+  .saved { font-size:13px; color:#1b7a6d; font-weight:700; margin-left:8px; }
+  .who { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .who input { max-width:220px; }
+  table { border-collapse:collapse; width:100%; font-size:16px; }
+  th, td { padding:9px 8px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; }
+  th { background:#DDF2F1; font-size:14px; }
+  td.l, th.l { text-align:left; white-space:normal; }
+  td.tot { font-family:"Jua",sans-serif; font-size:22px; color:var(--brick); }
+  td.rk { font-family:"Jua",sans-serif; font-size:20px; }
+  tr.top3 td { background:#FBF3DC; }
+  td.na { color:#b9b3a4; }
+  .scroll { overflow-x:auto; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .bar .sp { flex:1; }
+  @media (max-width:700px) { .lv.m { grid-template-columns:1fr 1fr; } .lv.p { grid-template-columns:repeat(5,1fr); } .lv.p button span { display:none; } }
+
+  /* ---------- 귀여운 테마 ---------- */
+  body { font-family:"Gowun Dodum","Noto Sans KR","Malgun Gothic",sans-serif; background:linear-gradient(180deg,#DFF5F4 0%,#FFF7E6 100%) fixed; font-weight:400; }
+  button, label, .lab, .tabs button, .chips button, .seg button { font-family:"Jua","Noto Sans KR",sans-serif; font-weight:400; letter-spacing:.2px; }
+  button { border-radius:999px; background:#2F6FB5; color:#fff; box-shadow:0 5px 0 #1F4E86; transition:transform .08s, box-shadow .08s; font-size:18px; }
+  button:active { transform:translateY(4px); box-shadow:0 1px 0 #1F4E86; }
+  button.ghost { background:#fff; color:#2F6FB5; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; }
+  button.small { border-radius:999px; }
+  input[type=text], input[type=number], input[type=password], textarea { border:3px solid #BFE3F2; border-radius:20px; }
+  .card { border-radius:32px; border:4px solid #fff; box-shadow:0 10px 0 rgba(108,203,203,.28), 0 18px 30px rgba(14,34,64,.06); }
+  .hint { font-size:15px; }
+  .mascot { display:block; animation:bob 2.6s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform:translateY(-5px) rotate(-2deg); } to { transform:translateY(5px) rotate(2deg); } }
+  .top { background:linear-gradient(180deg,#7FD6D6,#4FA9D8); }
+  .top h1 { text-shadow:0 3px 0 rgba(14,34,64,.18); }
+  .top .mascot { width:70px; flex:none; }
+  .seg button { background:rgba(255,255,255,.35); color:#0E2240; box-shadow:0 4px 0 rgba(14,34,64,.18); font-size:18px; }
+  .seg button.on { background:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .teams button { border-radius:20px; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; color:#0E2240; background:#fff; font-size:20px; }
+  .teams button.done { background:#DFF5F4; border-color:#6CCBCB; box-shadow:0 4px 0 #6CCBCB; }
+  .teams button.on, .teams button.on.done { background:#2F6FB5; border-color:#2F6FB5; color:#fff; box-shadow:0 4px 0 #1F4E86; }
+  .lv button { border-radius:22px; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; background:#fff; color:#0E2240; font-family:"Gowun Dodum","Noto Sans KR",sans-serif; }
+  .lv button.on { background:#FFD966; border-color:#FFD966; box-shadow:0 4px 0 #E0B53A; }
+  .item { border-top:3px dotted #BFE3F2; }
+  .th .sum b { color:#F08A6C; }
+  th { background:#DFF5F4; font-family:"Jua",sans-serif; font-weight:400; font-size:15px; }
+  td.tot, td.rk { color:#F08A6C; }
+  tr.top3 td { background:#FFF4D1; }
+  .login .mascot { width:200px; margin:0 auto; }
+  .login h1 { text-shadow:0 4px 0 #BFEDEE; }
+  .login input { text-align:center; font-family:"Jua",sans-serif; font-size:28px; letter-spacing:8px; }
+  .who .seg button { box-shadow:0 4px 0 #D8D0BC; }
+</style>
+<style>
+  .arena { display:flex; gap:8px; flex-wrap:wrap; }
+  .arena button { background:#fff; color:#0E2240; border:3px solid #BFE3F2; box-shadow:0 4px 0 #BFE3F2; padding:10px 16px; font-size:19px; }
+  .arena button.on { background:#2F6FB5; color:#fff; border-color:#2F6FB5; box-shadow:0 4px 0 #1F4E86; }
+  .lv.s { grid-template-columns:repeat(5,1fr); }
+  .lv.i4 { grid-template-columns:repeat(4,1fr); }
+  .crit { display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; font-size:14px; color:var(--soft); margin-top:8px; }
+  .crit b { color:#0E2240; font-family:"Jua",sans-serif; font-weight:400; font-size:15px; }
+  .aux { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:6px; }
+  .aux input { max-width:150px; text-align:center; font-size:22px; font-family:"Jua",sans-serif; }
+  .aux .u { font-size:18px; }
+  .medal { display:inline-block; min-width:28px; border-radius:999px; padding:0 8px; font-family:"Jua",sans-serif; font-size:15px; color:#0E2240; }
+  .medal.g { background:#FFD966; } .medal.s { background:#DDE3EA; } .medal.b { background:#F3C9A0; }
+  td.miss { color:#B44A33; font-size:14px; }
+  textarea.memo { width:100%; font:inherit; font-size:16px; padding:10px 14px; border:3px solid #BFE3F2; border-radius:20px; margin-top:8px; }
+  @media (max-width:700px) { .lv.s { grid-template-columns:repeat(3,1fr); } .lv.i4 { grid-template-columns:1fr 1fr; } .crit { grid-template-columns:1fr; }
+    .teams { grid-template-columns:repeat(5,1fr); gap:6px; } .teams button { font-size:17px; padding:7px 0; border-radius:14px; } .teams button .nm { font-size:11px; padding:0 2px; } .arena button { font-size:16px; padding:8px 12px; } }
+</style>
+</head>
+<body>
+
+<div id="v-load" class="login"><p class="hint" id="load-msg">불러오는 중…</p></div>
+
+<div id="v-login" class="login hide">
+  <svg class="mascot" viewBox="0 0 200 200" aria-hidden="true"><rect x="28" y="70" width="144" height="70" rx="26" fill="#FFD966" stroke="#0E2240" stroke-width="6"/><rect x="58" y="44" width="84" height="40" rx="16" fill="#7FD6D6" stroke="#0E2240" stroke-width="6"/><rect x="74" y="86" width="52" height="30" rx="8" fill="#2B2F36"/><circle cx="88" cy="101" r="5" fill="#F08A6C"/><circle cx="112" cy="101" r="5" fill="#F08A6C"/><circle cx="40" cy="104" r="8" fill="#fff" stroke="#0E2240" stroke-width="4"/><circle cx="160" cy="104" r="8" fill="#fff" stroke="#0E2240" stroke-width="4"/><circle cx="60" cy="148" r="20" fill="#2B2F36" stroke="#0E2240" stroke-width="5"/><circle cx="140" cy="148" r="20" fill="#2B2F36" stroke="#0E2240" stroke-width="5"/><circle cx="60" cy="148" r="7" fill="#FFD966"/><circle cx="140" cy="148" r="7" fill="#FFD966"/></svg>
+  <h1>알티노 로봇 심사</h1>
+  <p class="hint">심판·심사위원 전용</p>
+  <div class="card">
+    <input id="in-pw" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호" aria-label="비밀번호">
+    <div class="err" id="login-err"></div>
+    <button id="btn-login" style="width:100%">들어가기</button>
+  </div>
+</div>
+
+<div id="v-main" class="hide">
+  <div class="top"><div class="in">
+    <svg class="mascot" viewBox="0 0 200 200" aria-hidden="true"><rect x="28" y="70" width="144" height="70" rx="26" fill="#FFD966" stroke="#0E2240" stroke-width="6"/><rect x="58" y="44" width="84" height="40" rx="16" fill="#7FD6D6" stroke="#0E2240" stroke-width="6"/><rect x="74" y="86" width="52" height="30" rx="8" fill="#2B2F36"/><circle cx="88" cy="101" r="5" fill="#F08A6C"/><circle cx="112" cy="101" r="5" fill="#F08A6C"/><circle cx="40" cy="104" r="8" fill="#fff" stroke="#0E2240" stroke-width="4"/><circle cx="160" cy="104" r="8" fill="#fff" stroke="#0E2240" stroke-width="4"/><circle cx="60" cy="148" r="20" fill="#2B2F36" stroke="#0E2240" stroke-width="5"/><circle cx="140" cy="148" r="20" fill="#2B2F36" stroke="#0E2240" stroke-width="5"/><circle cx="60" cy="148" r="7" fill="#FFD966"/><circle cx="140" cy="148" r="7" fill="#FFD966"/></svg>
+    <h1>알티노 로봇 심사</h1>
+    <div class="seg" id="mode"></div>
+  </div></div>
+  <div class="wrap" id="body"></div>
+</div>
+
+<script type="module">
+/* ====== Firebase 설정 (캔바 · 레고 · 핑퐁 심사와 같은 프로젝트) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAkmC7FOUIECxATjvx3jyRgwz-fsfQsuNM",
+  authDomain: "aicue-c952a.firebaseapp.com",
+  projectId: "aicue-c952a",
+  storageBucket: "aicue-c952a.firebasestorage.app",
+  messagingSenderId: "929288201351",
+  appId: "1:929288201351:web:ecab6eb22cfe11fe18c422"
+};
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const COL = 'config';        // 현재 규칙이 허용하는 컬렉션. 문서 id 앞에 alt_ 를 붙여 구분한다
+const PRE = 'alt_';
+const KIND = 'alt';
+const ADMIN_PW = '3141';
+const TEAMS = 25;           // 명단이 없을 때의 가족 수. 명단을 등록하면 명단의 가족만 보인다
+function teamList() { const l = roster && roster.teams && roster.teams.length ? Array.from(new Set(roster.teams.map(t => t.team))).sort((a, b) => a - b) : null; if (l) return l; const d = []; for (let t = 1; t <= TEAMS; t++) d.push(t); return d; }
+
+/* ====== 심사 기준 (4_알티노_심사기준_심사표_v2 와 같음) ====== */
+const PTS = [0, 10, 20, 35, 55];          // 도달 단계 0~4 → 점수 (0 = 1단계 실패)
+const BONUS = 10;                         // ③ 역방향 성공
+const ARENAS = [
+  { k: 'a1', no: '①', t: '정지', lv: ['속도 300 · ±20cm', '속도 300 · ±10cm', '속도 400 · ±10cm', '속도 500 · ±10cm'],
+    ok: '차 앞 끝이 정지선 띠 안에 정지', ng: '끊어 누르기 · 띠 밖 정지', aux: 'err' },
+  { k: 'a2', no: '②', t: '표현', lv: ['표정 따라 그리기', '표정 + 음 3개', '10초 보고 기억하기', '표정 2장면 + 음 4개'],
+    ok: '앱 판정 성공(틀린 칸 2개까지)', ng: '앱 판정 실패 · 시간 초과' },
+  { k: 'a3', no: '③', t: '암호 전달', lv: ['숫자 1개', '숫자 2개', '기호 3개', '숫자 4자리 · 30초'],
+    ok: '보호자 답이 카드와 같음', ng: '말 · 손짓 · 입 모양 사용', aux: 'rev' },
+  { k: 'a4', no: '④', t: '센서', lv: ['손 따라오기 직선', '손 따라오기 한 번 꺾기', '손 따라오기 S자', '손 없이 장애물 피하기'],
+    ok: '차 앞 끝이 목표선 도착', ng: '손 · 몸 접촉, 바퀴가 테두리 밖 바닥에 닿음' },
+  { k: 'a5', no: '⑤', t: 'AI 주행', lv: ['손짓 2종 · 정지 구역 A', '손짓 3종 · 정지 구역 B', '손짓 4종 · 60초 안', '심판 손짓 · 정지 구역 B'],
+    ok: '차 앞 끝이 정지 구역 안에 정지', ng: '운전 중 화면 터치 · 구역 밖 정지', aux: 'sec' }
+];
+const A_MAX = 55 * 5 + BONUS;   // 285
+const JUDGES = { A: '박정호', B: '성영훈' };
+const INTV = [
+  { k: 'q1', t: '가. 잘된 경기장', max: 4, q: '가장 잘된 경기장은 어디인가요? 왜 잘됐다고 생각하나요?',
+    lv: [[4, '상', '한 일과 까닭 · 예) 500은 많이 밀려서 정지선 10cm 앞에서 뗐어요'], [2, '중', '한 일만 · 예) 일찍 뗐어요'], [1, '하', '결과만 · 예) 잘됐어요 · 연습 많이 했어요'], [0, '무응답', '대답 없음']] },
+  { k: 'q2', t: '나. 안 된 경기장', max: 3, q: '가장 안 된 경기장은 어디인가요? 왜 안 됐다고 생각하나요?',
+    lv: [[3, '상', '안 된 장면과 까닭 · 예) 주먹을 전진으로 봤어요. 주먹 사진이 적었어요'], [2, '중', '안 된 장면만 · 예) 정지 손짓에 안 멈췄어요'], [1, '하', '결과만 · 예) 어려웠어요'], [0, '무응답', '대답 없음']] },
+  { k: 'q3', t: '다. 다시 한다면', max: 3, q: '그 경기장을 다시 한다면 알티노에게 무엇을 다르게 가르칠 건가요?',
+    lv: [[3, '상', '까닭에 맞는 방법 · 예) 주먹 사진을 배경 바꿔 20장 더'], [2, '중', '방법은 있으나 까닭과 무관 · 예) 손짓을 바꿀래요'], [1, '하', '막연한 다짐 · 예) 더 열심히 할래요'], [0, '무응답', '대답 없음']] }
+];
+const I_MAX = INTV.reduce((s, x) => s + x.max, 0);   // 10
+const REASONS = {
+  a1: '빠를수록 손을 뗀 뒤 더 밀림 · 일찍 떼기 · 영점(직진) 맞추기 · 속도 실험으로 거리 확인',
+  a2: '눈 · 입 칸 위치 기억 · 켜진 칸 수 세기 · 소리 높낮이 · 짧게와 길게 구별 · 10초에 먼저 외울 것 정하기',
+  a3: '가족 암호표 약속 · 신호끼리 달라야 구별 · 숫자 사이 끝 신호 · 짧은 신호로 시간 줄이기',
+  a4: '센서 맞추기(빈 곳 · 손 10cm) · 손을 천천히 · 앞 센서 위치 · 가까우면 숫자가 바뀜',
+  a5: '손짓마다 사진 많이 · 배경 · 거리 바꿔 가르치기 · 손짓끼리 다르게 · 다른 사람 손으로 시험'
+};
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function show(v) { ['load', 'login', 'main'].forEach(n => $('v-' + n).classList.toggle('hide', n !== v)); }
+function fatal(e) { console.error(e); $('load-msg').textContent = '연결에 문제가 있습니다. 화면을 새로 고쳐 주세요. (' + (e && e.code || e && e.message || e) + ')'; show('load'); }
+
+async function firestoreStore() {
+  const { initializeApp } = await import(FB + 'firebase-app.js');
+  const f = await import(FB + 'firebase-firestore.js');
+  const db = f.getFirestore(initializeApp(firebaseConfig));
+  return {
+    set: (id, d) => f.setDoc(f.doc(db, COL, id), d, { merge: true }),
+    put: (id, d) => f.setDoc(f.doc(db, COL, id), d),
+    del: id => f.deleteDoc(f.doc(db, COL, id)),
+    // 읽기 횟수를 줄이려고 알티노 문서(kind = alt)만 듣는다
+    watch: cb => f.onSnapshot(f.query(f.collection(db, COL), f.where('kind', '==', KIND)), s => cb(s.docs.map(d => Object.assign({ id: d.id }, d.data()))), e => fatal(e))
+  };
+}
+function mockStore() {
+  const K = 'alt_mockdb';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch (e) { return {}; } };
+  const subs = []; const fire = () => subs.slice().forEach(s => s());
+  const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) o[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) ? merge(o[k] || {}, b[k]) : b[k]; return o; };
+  window.addEventListener('storage', fire);
+  return {
+    set: async (id, d) => { const db = read(); db[id] = merge(db[id] || {}, d); localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    put: async (id, d) => { const db = read(); db[id] = d; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    del: async id => { const db = read(); delete db[id]; localStorage.setItem(K, JSON.stringify(db)); fire(); },
+    watch: cb => { const fn = () => cb(Object.entries(read()).map(([id, d]) => Object.assign({ id }, d))); subs.push(fn); Promise.resolve().then(fn); }
+  };
+}
+
+let roster = null, rosterMsg = '';
+let S = null, data = {}, names = {}, mode = 'arena', team = 1, arena = 'a1', judge = 'A', flash = '';
+try { judge = sessionStorage.getItem('alt_j') || 'A'; arena = sessionStorage.getItem('alt_a') || 'a1'; } catch (e) {}
+
+/* ---------- 점수 계산 ---------- */
+const rec = t => data[t] || {};
+const aRec = (t, k) => ((rec(t).a || {})[k]) || {};
+const aHas = (t, k) => aRec(t, k).st != null;
+const aPts = (t, k) => aHas(t, k) ? PTS[aRec(t, k).st] : 0;
+const bonus = t => aRec(t, 'a3').rev === 1 ? BONUS : 0;
+const aSum = t => ARENAS.reduce((s, x) => s + aPts(t, x.k), 0) + bonus(t);
+const aCount = t => ARENAS.filter(x => aHas(t, x.k)).length;
+const missing = t => ARENAS.filter(x => !aHas(t, x.k)).map(x => x.no).join(' ');
+function iOf(t, j) { const p = (rec(t).p || {})[j]; if (!p) return null; if (INTV.some(x => p[x.k] == null)) return null; return INTV.reduce((s, x) => s + p[x.k], 0); }
+function iScore(t) { const v = ['A', 'B'].map(j => iOf(t, j)).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+const num = v => (v === '' || v == null || isNaN(+v)) ? null : +v;
+// 동점: ⑤ 도달 단계(높은 쪽) → ① 정지 오차(작은 쪽, ① 미성공 · 오차 미기록은 뒤) → ⑤ 완주 시간(짧은 쪽, 미기록은 뒤)
+const t5 = t => aHas(t, 'a5') ? aRec(t, 'a5').st : -1;
+const e1 = t => (aHas(t, 'a1') && aRec(t, 'a1').st >= 1 && num(aRec(t, 'a1').err) != null) ? num(aRec(t, 'a1').err) : Infinity;
+const s5 = t => (aHas(t, 'a5') && aRec(t, 'a5').st >= 1 && num(aRec(t, 'a5').sec) != null) ? num(aRec(t, 'a5').sec) : Infinity;
+const fmt = n => n == null ? '–' : (Math.round(n * 10) / 10).toString();
+function ranking() {
+  const list = teamList().map(t => { const p = iScore(t); return { t, a: aSum(t), p, tot: aSum(t) + (p || 0), k5: t5(t), k1: e1(t), k3: s5(t) }; });
+  const cmp = (a, b) => b.tot - a.tot || b.k5 - a.k5 || (a.k1 === b.k1 ? 0 : a.k1 - b.k1) || (a.k3 === b.k3 ? 0 : a.k3 - b.k3);
+  list.sort((a, b) => cmp(a, b) || a.t - b.t);
+  list.forEach((r, i) => { const prev = list[i - 1]; r.rank = prev && cmp(prev, r) === 0 ? prev.rank : i + 1; });
+  return list;
+}
+
+/* ---------- 화면 ---------- */
+function teamPicker(doneFn, subFn) {
+  const box = el('div', 'teams');
+  const tl = teamList(); if (!tl.includes(team)) team = tl[0];
+  tl.forEach(t => {
+    const b = el('button', (t === team ? 'on' : '') + (doneFn(t) ? ' done' : ''), String(t));
+    if (names[t]) b.appendChild(el('span', 'nm', names[t]));
+    b.appendChild(el('small', null, subFn(t)));
+    b.setAttribute('aria-label', t + '번 가족'); b.onclick = () => { team = t; flash = ''; render(); }; box.appendChild(b);
+  });
+  return box;
+}
+function teamHead(sumLabel, sumVal, max) {
+  const h = el('div', 'th'); h.appendChild(el('h2', null, team + '번' + (names[team] ? ' · ' + names[team] : '')));
+  if (flash) h.appendChild(el('span', 'saved', flash));
+  const s = el('div', 'sum', sumLabel + ' '); s.appendChild(el('b', null, sumVal)); s.appendChild(document.createTextNode(' / ' + max)); h.appendChild(s); return h;
+}
+async function save(patch, msg) {
+  flash = '저장 중…'; render();
+  try { await S.set(PRE + 't' + team, Object.assign({ kind: KIND, team, ts: Date.now() }, patch)); flash = msg || '저장됨'; }
+  catch (e) { console.error(e); flash = '저장 실패 — 다시 눌러 주세요'; }
+  render();
+}
+function numInput(val, ph, onSave) {
+  const i = el('input'); i.type = 'number'; i.inputMode = 'decimal'; i.step = 'any'; i.min = '0'; i.placeholder = ph; i.value = val == null ? '' : val;
+  i.addEventListener('change', () => onSave(num(i.value)));
+  i.addEventListener('keydown', e => { if (e.key === 'Enter') i.blur(); });
+  return i;
+}
+function viewArena(body) {
+  const X = ARENAS.find(x => x.k === arena) || ARENAS[0];
+  const c0 = el('div', 'card'), ar = el('div', 'arena');
+  ARENAS.forEach(x => { const b = el('button', x.k === arena ? 'on' : '', x.no + ' ' + x.t); b.onclick = () => { arena = x.k; flash = ''; try { sessionStorage.setItem('alt_a', x.k); } catch (e) {} render(); }; ar.appendChild(b); });
+  c0.appendChild(ar);
+  c0.appendChild(el('div', 'hint', '맡은 경기장을 고르고 가족 번호를 누른 뒤, 도전이 끝나면 도달한 가장 높은 단계를 누릅니다. 누르는 즉시 저장되고, 다시 누르면 지워집니다.'));
+  c0.lastChild.style.marginTop = '8px';
+  const tp = teamPicker(t => aHas(t, X.k), t => aHas(t, X.k) ? aPts(t, X.k) + (X.aux === 'rev' && bonus(t) ? '+10' : '') + '점' : ' '); tp.style.marginTop = '10px'; c0.appendChild(tp);
+  body.appendChild(c0);
+
+  const r = aRec(team, X.k);
+  const c = el('div', 'card'); c.appendChild(teamHead(X.no + ' ' + X.t, aHas(team, X.k) ? aPts(team, X.k) + (X.aux === 'rev' ? bonus(team) : 0) : '–', X.aux === 'rev' ? 65 : 55));
+  const cr = el('div', 'crit');
+  const ok = el('div'); ok.appendChild(el('b', null, '성공 ')); ok.appendChild(document.createTextNode(X.ok)); cr.appendChild(ok);
+  const ng = el('div'); ng.appendChild(el('b', null, '실패 · 무효 ')); ng.appendChild(document.createTextNode(X.ng)); cr.appendChild(ng);
+  c.appendChild(cr);
+  const it = el('div', 'item'); it.appendChild(el('h3', null, '도달한 가장 높은 단계'));
+  it.appendChild(el('div', 'q', '기회 3번 · 4분 안에서 성공한 마지막 단계. 1단계도 실패하면 「0단계」. 기기 고장은 심판 판단으로 기회 차감 없이 재시도.'));
+  const lv = el('div', 'lv s');
+  [0, 1, 2, 3, 4].forEach(st => {
+    const on = r.st === st; const b = el('button', on ? 'on' : '');
+    b.appendChild(el('b', null, st + '단계'));
+    b.appendChild(el('span', null, PTS[st] + '점 · ' + (st === 0 ? '1단계 실패' : X.lv[st - 1])));
+    b.setAttribute('aria-pressed', on);
+    b.onclick = () => save({ a: { [X.k]: { st: on ? null : st } } }, on ? '지움' : X.no + ' ' + st + '단계 저장');
+    lv.appendChild(b);
+  });
+  it.appendChild(lv); c.appendChild(it);
+
+  if (X.aux) {
+    const ax = el('div', 'item');
+    if (X.aux === 'err') {
+      ax.appendChild(el('h3', null, '정지 오차')); ax.appendChild(el('div', 'q', '성공한 가장 높은 단계에서 차 앞 끝과 정지선 사이 거리. 동점 처리 2순위.'));
+      const w = el('div', 'aux'); w.appendChild(numInput(r.err, 'cm', v => save({ a: { a1: { err: v } } }, v == null ? '오차 지움' : '오차 ' + v + 'cm 저장'))); w.appendChild(el('span', 'u', 'cm')); ax.appendChild(w);
+    } else if (X.aux === 'sec') {
+      ax.appendChild(el('h3', null, '완주 시간')); ax.appendChild(el('div', 'q', '성공한 가장 높은 단계의 출발부터 정지까지. 동점 처리 3순위.'));
+      const w = el('div', 'aux'); w.appendChild(numInput(r.sec, '초', v => save({ a: { a5: { sec: v } } }, v == null ? '시간 지움' : v + '초 저장'))); w.appendChild(el('span', 'u', '초')); ax.appendChild(w);
+    } else if (X.aux === 'rev') {
+      ax.appendChild(el('h3', null, '역방향 보너스 +10')); ax.appendChild(el('div', 'q', '보호자가 숫자 2개를 보내고 아이가 맞힘.'));
+      const g = el('div', 'opts'); g.style.marginTop = '8px';
+      [[1, '성공 +10'], [0, '실패'], [null, '안 함']].forEach(([v, lb]) => { const on = (r.rev ?? null) === v; const b = el('button', 'opt' + (on ? ' on' : ''), lb); b.onclick = () => save({ a: { a3: { rev: v } } }, '역방향 ' + lb + ' 저장'); g.appendChild(b); });
+      ax.appendChild(g);
+    }
+    c.appendChild(ax);
+  }
+  const mm = el('div', 'item'); mm.appendChild(el('h3', null, '메모'));
+  const ta = el('textarea', 'memo'); ta.rows = 2; ta.placeholder = '재시도 · 무효 사유 등'; ta.value = r.memo || '';
+  ta.addEventListener('change', () => save({ a: { [X.k]: { memo: ta.value.trim() } } }, '메모 저장'));
+  mm.appendChild(ta); c.appendChild(mm);
+  body.appendChild(c);
+}
+function viewIntv(body) {
+  const c0 = el('div', 'card'), w = el('div', 'who'); w.appendChild(el('b', null, '심사위원'));
+  const sg = el('div', 'seg'); ['A', 'B'].forEach(j => { const b = el('button', j === judge ? 'on' : '', JUDGES[j]); b.style.background = j === judge ? '' : '#E9E3D3'; b.style.color = 'var(--navy)';
+    b.onclick = () => { judge = j; try { sessionStorage.setItem('alt_j', j); } catch (e) {} flash = ''; render(); }; sg.appendChild(b); });
+  w.appendChild(sg);
+  w.appendChild(el('span', 'hint', '맡은 가족만 채점(13 · 12가족). 학생 태블릿 캠프 홈의 경기장 카드를 함께 보고 묻습니다. 학생이 답하고, 보호자가 대신 답하면 하.')); c0.appendChild(w);
+  const other = judge === 'A' ? 'B' : 'A';
+  const tp = teamPicker(t => iOf(t, judge) != null, t => iOf(t, judge) != null ? iOf(t, judge) + '점' : (iOf(t, other) != null ? JUDGES[other] : ' ')); tp.style.marginTop = '12px'; c0.appendChild(tp); body.appendChild(c0);
+  const p = ((rec(team).p || {})[judge]) || {};
+  const sum = INTV.reduce((s, x) => s + (p[x.k] || 0), 0);
+  const c = el('div', 'card'); c.appendChild(teamHead(JUDGES[judge] + ' 면접', sum, I_MAX));
+  // 경기장 기록 요약 (질문 고르기용)
+  const sm = el('div', 'hint'); sm.style.marginTop = '6px';
+  sm.textContent = '경기장 기록: ' + ARENAS.map(x => x.no + ' ' + (aHas(team, x.k) ? aRec(team, x.k).st + '단계' : '미방문')).join(' · ');
+  c.appendChild(sm);
+  // 고른 경기장
+  [['good', '잘된 경기장'], ['bad', '안 된 경기장']].forEach(([k, lb]) => {
+    const row = el('div', 'row'); row.appendChild(el('div', 'rt', lb)); const g = el('div', 'opts');
+    ARENAS.forEach(x => { const on = p[k] === x.k; const b = el('button', 'opt' + (on ? ' on' : ''), x.no + ' ' + x.t); b.onclick = () => save({ p: { [judge]: { [k]: on ? null : x.k } } }, lb + ' 저장'); g.appendChild(b); });
+    row.appendChild(g); c.appendChild(row);
+  });
+  INTV.forEach((x, xi) => {
+    const it = el('div', 'item'); it.appendChild(el('h3', null, x.t + ' (' + x.max + '점)')); it.appendChild(el('div', 'q', '질문: ' + x.q));
+    const lv = el('div', 'lv i4');
+    x.lv.forEach(([pt, nm, ds]) => { const on = p[x.k] === pt; const b = el('button', on ? 'on' : ''); b.appendChild(el('b', null, nm + ' · ' + pt + '점')); b.appendChild(el('span', null, ds));
+      b.setAttribute('aria-pressed', on);
+      b.onclick = () => save({ p: { [judge]: { [x.k]: on ? null : pt, by: JUDGES[judge] } } }, x.t + ' ' + pt + '점 저장'); lv.appendChild(b); });
+    it.appendChild(lv);
+    if (xi < 2) { const ak = p[xi === 0 ? 'good' : 'bad']; if (ak) { const h = el('div', 'hint'); h.style.marginTop = '6px'; h.textContent = '까닭으로 인정하는 말(' + ARENAS.find(a => a.k === ak).no + '): ' + REASONS[ak]; it.appendChild(h); } }
+    c.appendChild(it);
+  });
+  const mm = el('div', 'item'); mm.appendChild(el('h3', null, '메모 (학생이 한 말)'));
+  const ta = el('textarea', 'memo'); ta.rows = 3; ta.value = p.memo || '';
+  ta.addEventListener('change', () => save({ p: { [judge]: { memo: ta.value.trim() } } }, '메모 저장'));
+  mm.appendChild(ta); c.appendChild(mm);
+  body.appendChild(c);
+}
+function medal(rank, tot) { if (!(tot > 0) || rank > 3) return null; const m = el('span', 'medal ' + ['g', 's', 'b'][rank - 1], ['금', '은', '동'][rank - 1]); return m; }
+function csv() {
+  const head = ['순위', '상', '번호', '가족', ...ARENAS.map(x => x.no + ' ' + x.t), '③ 역방향', '경기장(' + A_MAX + ')', '면접 ' + JUDGES.A, '면접 ' + JUDGES.B, '면접(' + I_MAX + ')', '총점(' + (A_MAX + I_MAX) + ')', '⑤ 단계', '① 오차(cm)', '⑤ 시간(초)', '미방문'];
+  const lines = ranking().map(r => [r.rank, r.tot > 0 && r.rank <= 3 ? ['금', '은', '동'][r.rank - 1] : '', r.t, names[r.t] || '',
+    ...ARENAS.map(x => aHas(r.t, x.k) ? aPts(r.t, x.k) : ''), bonus(r.t) || '', r.a, fmt(iOf(r.t, 'A')), fmt(iOf(r.t, 'B')), fmt(r.p), fmt(r.tot),
+    r.k5 >= 0 ? r.k5 : '', isFinite(r.k1) ? r.k1 : '', isFinite(r.k3) ? r.k3 : '', missing(r.t)]);
+  const text = '﻿' + [head].concat(lines).map(l => l.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = '알티노_심사결과.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+function viewResult(body) {
+  const c = el('div', 'card'), list = ranking(), tl = teamList();
+  const bar = el('div', 'bar');
+  const full = tl.filter(t => aCount(t) === 5).length, it = tl.filter(t => iScore(t) != null).length;
+  bar.appendChild(el('b', null, '경기장 5곳 모두 기록 ' + full + ' / ' + tl.length + '가족 · 면접 ' + it + ' / ' + tl.length + '가족'));
+  bar.appendChild(el('span', 'sp')); const dl = el('button', 'ghost small', '엑셀용 파일 받기 (CSV)'); dl.onclick = csv; bar.appendChild(dl); c.appendChild(bar);
+  c.appendChild(el('div', 'hint', '총점 = 경기장 5곳 도달 단계 점수 + ③ 역방향 10 + 면접 10. 동점은 ⑤ 도달 단계 → ① 정지 오차(① 미성공 · 미기록은 뒤) → ⑤ 완주 시간 순. 그래도 같으면 같은 순위.'));
+  const sc = el('div', 'scroll'), tb = el('table'); sc.style.marginTop = '10px';
+  const hr = el('tr'); ['순위', '번호', '가족', '①', '②', '③', '③+', '④', '⑤', '경기장', '면접', '총점', '⑤단계', '①오차', '⑤시간', '미방문'].forEach((h, i) => hr.appendChild(el('th', i === 2 ? 'l' : '', h))); tb.appendChild(hr);
+  list.forEach(r => {
+    const tr = el('tr', r.rank <= 3 && r.tot > 0 ? 'top3' : '');
+    const rk = el('td', 'rk', r.tot > 0 ? r.rank : '–'); const md = medal(r.rank, r.tot); if (md) { rk.appendChild(document.createTextNode(' ')); rk.appendChild(md); } tr.appendChild(rk);
+    tr.appendChild(el('td', null, r.t)); tr.appendChild(el('td', 'l', names[r.t] || ''));
+    ARENAS.forEach(x => { tr.appendChild(el('td', aHas(r.t, x.k) ? '' : 'na', aHas(r.t, x.k) ? aPts(r.t, x.k) : '–'));
+      if (x.k === 'a3') tr.appendChild(el('td', bonus(r.t) ? '' : 'na', bonus(r.t) ? '+10' : '–')); });
+    tr.appendChild(el('td', null, r.a));
+    const pv = r.p; const pc = el('td', pv == null ? 'na' : '', fmt(pv)); if (pv != null) pc.title = ['A', 'B'].filter(j => iOf(r.t, j) != null).map(j => JUDGES[j] + ' ' + iOf(r.t, j)).join(' · '); tr.appendChild(pc);
+    tr.appendChild(el('td', 'tot', fmt(r.tot)));
+    tr.appendChild(el('td', r.k5 >= 0 ? '' : 'na', r.k5 >= 0 ? r.k5 : '–'));
+    tr.appendChild(el('td', isFinite(r.k1) ? '' : 'na', isFinite(r.k1) ? r.k1 : '–'));
+    tr.appendChild(el('td', isFinite(r.k3) ? '' : 'na', isFinite(r.k3) ? r.k3 : '–'));
+    tr.appendChild(el('td', 'miss', missing(r.t)));
+    tb.appendChild(tr);
+  });
+  sc.appendChild(tb); c.appendChild(sc); body.appendChild(c);
+}
+/* ---------- 명단 ---------- */
+function parseRoster(text) {
+  const out = [], bad = [];
+  text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(l => {
+    const m = l.match(/^(\d{1,2})\s*(?:팀|번)?[\s,\t]+(.*?)[\s,\t]*([\d\-\s]{4,})?$/);
+    if (!m || !m[2] || +m[1] < 1 || +m[1] > 60) { bad.push(l); return; }
+    out.push({ team: +m[1], name: m[2].replace(/[,\t]/g, ' ').trim().slice(0, 12) });
+  });
+  return { out, bad };
+}
+function viewRoster(body) {
+  const c = el('div', 'card'); c.appendChild(el('h2', null, '참가 명단')); c.lastChild.style.fontSize = '28px';
+  const n = roster && roster.teams ? roster.teams.length : 0;
+  c.appendChild(el('div', 'hint', '명단을 등록하면 모든 화면에 명단의 가족만 이름과 함께 나옵니다. 명단이 없으면 1~' + TEAMS + '번이 나옵니다. 지금 등록된 가족: ' + n + '. 새로 등록하면 이전 명단은 지워지고, 이미 입력한 점수는 번호 기준으로 그대로 남습니다.'));
+  const ta = el('textarea'); ta.rows = 10; ta.placeholder = '한 줄에 한 가족: 번호, 이름 (전화번호가 뒤에 붙어 있어도 됨)\n1 홍길동\n2 김철수';
+  ta.style.cssText = 'width:100%;font:inherit;font-size:16px;padding:12px;border:3px solid #BFE3F2;border-radius:20px;margin-top:10px'; ta.setAttribute('aria-label', '명단 붙여넣기'); c.appendChild(ta);
+  const bar = el('div', 'bar'); bar.style.marginTop = '10px';
+  const go = el('button', null, '명단 등록'), msg = el('span', 'saved', rosterMsg);
+  go.onclick = async () => {
+    const { out, bad } = parseRoster(ta.value);
+    if (!out.length || bad.length) { msg.textContent = bad.length ? '읽지 못한 줄: ' + bad[0] : '명단을 붙여 넣어 주세요'; msg.style.color = 'var(--brick)'; return; }
+    msg.textContent = '등록 중…';
+    try { await S.put(PRE + 'roster', { kind: KIND, teams: out, ts: Date.now() }); rosterMsg = out.length + '가족 등록됨'; } catch (e) { console.error(e); rosterMsg = '등록 실패 — 다시 눌러 주세요'; }
+    render();
+  };
+  bar.appendChild(go); bar.appendChild(msg); c.appendChild(bar);
+  if (n) { const g = el('div', 'hint'); g.style.marginTop = '12px'; g.textContent = roster.teams.slice().sort((a, b) => a.team - b.team).map(t => t.team + '번 ' + t.name).join(' · '); c.appendChild(g); }
+  body.appendChild(c);
+}
+/* ---------- 숨은 기능: 위쪽 알티노를 7번 누르면 전체 지우기가 나온다 ---------- */
+let robotTaps = 0, wipeOpen = false, wipeArm = '', wipeMsg = '';
+function viewWipe(body) {
+  const c = el('div', 'card'); c.style.borderColor = '#F08A6C';
+  c.appendChild(el('h2', null, '전체 지우기')); c.lastChild.style.fontSize = '28px';
+  c.appendChild(el('div', 'hint', '연습 때 넣은 점수를 비울 때만 씁니다. 지운 내용은 되돌릴 수 없습니다. 명단은 지워지지 않습니다. 한 번 누르면 확인 문구로 바뀌고, 한 번 더 눌러야 지워집니다.'));
+  const bar = el('div', 'bar'); bar.style.marginTop = '12px';
+  const label = '심사 점수 모두 지우기', armed = wipeArm === 'score';
+  const b = el('button', armed ? '' : 'ghost', armed ? '정말 지우기 — 한 번 더 누르기' : label);
+  if (armed) { b.style.background = '#B44A33'; b.style.boxShadow = '0 5px 0 #7A2E22'; }
+  b.onclick = async () => {
+    if (!armed) { wipeArm = 'score'; wipeMsg = ''; render(); return; }
+    wipeArm = ''; wipeMsg = '지우는 중…'; render();
+    try { const ids = Object.values(data).map(r => r.id); for (const id of ids) await S.del(id); wipeMsg = '점수 ' + ids.length + '건 지움'; } catch (e) { console.error(e); wipeMsg = '지우지 못했습니다. 다시 눌러 주세요.'; }
+    render();
+  };
+  bar.appendChild(b);
+  const x = el('button', 'ghost small', '닫기'); x.onclick = () => { wipeOpen = false; wipeArm = ''; wipeMsg = ''; robotTaps = 0; render(); }; bar.appendChild(x);
+  if (wipeMsg) bar.appendChild(el('span', 'saved', wipeMsg));
+  c.appendChild(bar); body.appendChild(c);
+}
+function render() {
+  const seg = $('mode'); seg.textContent = '';
+  [['arena', '경기장 판정'], ['intv', '면접'], ['result', '결과'], ['roster', '명단']].forEach(([k, t]) => { const b = el('button', k === mode ? 'on' : '', t); b.onclick = () => { mode = k; flash = ''; try { sessionStorage.setItem('alt_mode', k); } catch (e) {} render(); }; seg.appendChild(b); });
+  const body = $('body'), y = window.scrollY; body.textContent = '';
+  if (mode === 'arena') viewArena(body); else if (mode === 'intv') viewIntv(body); else if (mode === 'roster') viewRoster(body); else viewResult(body);
+  if (wipeOpen) viewWipe(body);
+  window.scrollTo(0, y);
+}
+
+function enter() { try { sessionStorage.setItem('alt_ok', '1'); mode = sessionStorage.getItem('alt_mode') || 'arena'; } catch (e) {} show('main'); render(); }
+document.querySelector('.top .mascot').addEventListener('click', () => { if (++robotTaps >= 7 && !wipeOpen) { wipeOpen = true; render(); window.scrollTo(0, document.body.scrollHeight); } });
+$('btn-login').onclick = () => { if ($('in-pw').value === ADMIN_PW) enter(); else $('login-err').textContent = '비밀번호가 다릅니다.'; };
+$('in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-login').click(); });
+try {
+  S = new URLSearchParams(location.search).has('mock') ? mockStore() : await firestoreStore();
+  let first = true, ok = false; try { ok = sessionStorage.getItem('alt_ok') === '1'; } catch (e) {}
+  S.watch(list => {
+    data = {}; names = {}; roster = null;
+    list.forEach(r => { if (r.id === PRE + 'roster') { roster = r; (r.teams || []).forEach(t => { names[t.team] = t.name; }); } else if (r.id.indexOf(PRE) === 0 && r.team) data[r.team] = r; });
+    if (first) { first = false; if (ok) enter(); else show('login'); return; }
+    if (!$('v-main').classList.contains('hide') && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) render();
+  });
+} catch (e) { fatal(e); }
+</script>
+</body>
+</html>
